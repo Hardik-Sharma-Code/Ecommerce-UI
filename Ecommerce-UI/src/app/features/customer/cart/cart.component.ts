@@ -28,11 +28,12 @@ export class CustomerCartComponent implements OnInit {
     this.cartService.getCart().subscribe({
       next: (res) => {
         this.loading = false;
-        this.cart = res.success && res.data ? res.data : this.getMockCart();
+        this.cart = res.success && res.data ? res.data : { items: [], itemCount: 0, subtotal: 0 };
       },
       error: () => {
         this.loading = false;
-        this.cart = this.getMockCart();
+        this.toast.error('Failed to load cart. Please try again.', 'Error');
+        this.cart = { items: [], itemCount: 0, subtotal: 0 };
       }
     });
   }
@@ -63,7 +64,10 @@ export class CustomerCartComponent implements OnInit {
         if (res.success && res.data) this.cart = res.data;
         else this.toast.error(res.message ?? 'Could not update quantity.', 'Error');
       },
-      error: () => { this.updatingItemId = null; }
+      error: () => {
+        this.updatingItemId = null;
+        this.toast.error('Failed to update item quantity. Please try again.', 'Error');
+      }
     });
   }
 
@@ -75,9 +79,14 @@ export class CustomerCartComponent implements OnInit {
         if (res.success && res.data) {
           this.cart = res.data;
           this.toast.success(`"${item.productName}" removed from cart.`, 'Removed');
+        } else {
+          this.toast.error(res.message ?? 'Could not remove item.', 'Error');
         }
       },
-      error: () => { this.updatingItemId = null; }
+      error: () => {
+        this.updatingItemId = null;
+        this.toast.error('Failed to remove item. Please try again.', 'Error');
+      }
     });
   }
 
@@ -88,7 +97,7 @@ export class CustomerCartComponent implements OnInit {
         this.cart = { items: [], itemCount: 0, subtotal: 0 };
         this.toast.success('Cart cleared.', 'Cleared');
       },
-      error: () => {}
+      error: () => { this.toast.error('Failed to clear cart. Please try again.', 'Error'); }
     });
   }
 

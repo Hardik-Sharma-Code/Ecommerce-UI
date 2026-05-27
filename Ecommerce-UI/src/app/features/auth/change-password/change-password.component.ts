@@ -50,7 +50,10 @@ export class ChangePasswordComponent {
           this.toast.error(res.message, 'Error');
         }
       },
-      error: () => { this.loading = false; }
+      error: () => {
+        this.loading = false;
+        this.toast.error('Failed to change password. Please try again.', 'Error');
+      }
     });
   }
 }

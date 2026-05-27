@@ -73,7 +73,10 @@ export class AdminOrderDetailComponent implements OnInit {
     this.loading = true;
     this.orderService.getById(id).subscribe({
       next: (res) => { this.loading = false; this.order = res.success && res.data ? res.data : null; },
-      error: () => { this.loading = false; }
+      error: () => {
+        this.loading = false;
+        this.toast.error('Failed to load order details. Please try again.', 'Error');
+      }
     });
   }
 
@@ -103,7 +106,10 @@ export class AdminOrderDetailComponent implements OnInit {
         if (res.success) { this.toast.success('Status updated.', 'Updated'); this.loadOrder(this.order!.id); }
         else this.toast.error(res.message, 'Error');
       },
-      error: () => { this.closeStatusModal(); }
+      error: () => {
+        this.closeStatusModal();
+        this.toast.error('Failed to update order status. Please try again.', 'Error');
+      }
     });
   }
 
@@ -137,7 +143,10 @@ export class AdminOrderDetailComponent implements OnInit {
         if (res.success) { this.toast.success('Tracking updated.', 'Saved'); this.loadOrder(this.order!.id); }
         else this.toast.error(res.message, 'Error');
       },
-      error: () => { this.savingTracking = false; }
+      error: () => {
+        this.savingTracking = false;
+        this.toast.error('Failed to update tracking info. Please try again.', 'Error');
+      }
     });
   }
 
@@ -164,7 +173,10 @@ export class AdminOrderDetailComponent implements OnInit {
         if (res.success) { this.toast.success('Shipment status updated.', 'Saved'); this.loadOrder(this.order!.id); }
         else this.toast.error(res.message, 'Error');
       },
-      error: () => { this.savingShipmentStatus = false; }
+      error: () => {
+        this.savingShipmentStatus = false;
+        this.toast.error('Failed to update shipment status. Please try again.', 'Error');
+      }
     });
   }
 

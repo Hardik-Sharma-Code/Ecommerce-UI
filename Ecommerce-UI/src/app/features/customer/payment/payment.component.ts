@@ -50,7 +50,13 @@ export class PaymentComponent implements OnInit {
   readonly currencyOptions = ['INR', 'USD', 'EUR', 'GBP', 'SGD', 'AED'];
 
   ngOnInit(): void {
-    this.orderId = Number(this.route.snapshot.paramMap.get('orderId'));
+    const rawId = Number(this.route.snapshot.paramMap.get('orderId'));
+    if (!rawId || rawId <= 0) {
+      this.state = 'failed';
+      this.failureReason = 'Invalid or missing order ID.';
+      return;
+    }
+    this.orderId = rawId;
     this.loadOrder();
   }
 
@@ -65,7 +71,11 @@ export class PaymentComponent implements OnInit {
           this.state = 'success';
         }
       },
-      error: () => { this.orderLoading = false; }
+      error: () => {
+        this.orderLoading = false;
+        this.state = 'failed';
+        this.failureReason = 'Failed to load order details. Please try again.';
+      }
     });
   }
 

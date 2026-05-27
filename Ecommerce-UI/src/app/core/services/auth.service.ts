@@ -55,7 +55,7 @@ export class AuthService {
             firstName: data.firstName,
             lastName: data.lastName,
             email: data.email,
-            roles: data.roles.map((r: string) => r.toLowerCase())
+            roles: (data.roles ?? []).map((r: string) => r.toLowerCase())
           };
           this.storage.set(USER_KEY, user);
           this.currentUser$.next(user);
