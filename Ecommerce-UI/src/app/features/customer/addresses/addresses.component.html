@@ -1,0 +1,237 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">My Addresses</h2>
+    <p class="text-muted mb-0">Manage your shipping addresses</p>
+  </div>
+  <button class="btn btn-primary" (click)="openCreate()">
+    <i class="bi bi-plus-lg me-1"></i> Add Address
+  </button>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else {
+  <div class="row g-3">
+
+    <!-- Address cards -->
+    @for (address of addresses; track address.id) {
+      <div class="col-md-6 col-xl-4">
+        <div class="card h-100 border-0 shadow-sm" [class.border-primary]="address.isDefault" [class.border-2]="address.isDefault">
+          <div class="card-body">
+
+            <!-- Header row -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:36px;height:36px">
+                  <i class="bi text-primary" [class]="getLabelIcon(address.label)"></i>
+                </div>
+                <span class="fw-semibold">{{ address.label }}</span>
+              </div>
+              @if (address.isDefault) {
+                <span class="badge bg-success">
+                  <i class="bi bi-check-circle me-1"></i>Default
+                </span>
+              }
+            </div>
+
+            <!-- Recipient -->
+            <p class="fw-semibold mb-1">{{ address.firstName }} {{ address.lastName }}</p>
+            @if (address.phoneNumber) {
+              <p class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i>{{ address.phoneNumber }}</p>
+            }
+
+            <!-- Address lines -->
+            <p class="text-muted small mb-1">{{ address.addressLine1 }}</p>
+            @if (address.addressLine2) {
+              <p class="text-muted small mb-1">{{ address.addressLine2 }}</p>
+            }
+            <p class="text-muted small mb-1">{{ address.city }}, {{ address.state }} {{ address.postalCode }}</p>
+            <p class="text-muted small mb-0">{{ address.country }}</p>
+          </div>
+
+          <!-- Footer actions -->
+          <div class="card-footer bg-transparent border-top-0 pt-0 pb-3 px-3">
+            <div class="d-flex gap-2 flex-wrap">
+              @if (!address.isDefault) {
+                <button class="btn btn-sm btn-outline-success" (click)="setDefault(address)">
+                  <i class="bi bi-check2-circle me-1"></i>Set Default
+                </button>
+              }
+              <button class="btn btn-sm btn-outline-primary" (click)="openEdit(address)">
+                <i class="bi bi-pencil me-1"></i>Edit
+              </button>
+              <button class="btn btn-sm btn-outline-danger ms-auto" (click)="confirmDelete(address)"
+                [disabled]="address.isDefault" [title]="address.isDefault ? 'Cannot delete default address' : 'Delete'">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Add new card CTA -->
+    @if (addresses.length === 0) {
+      <div class="col-12">
+        <div class="card border-2 border-dashed border-secondary text-center py-5">
+          <i class="bi bi-geo-alt display-4 text-muted mb-3"></i>
+          <h5 class="text-muted">No addresses yet</h5>
+          <p class="text-muted mb-3">Add a shipping address to get started.</p>
+          <button class="btn btn-primary mx-auto" style="width:fit-content" (click)="openCreate()">
+            <i class="bi bi-plus-lg me-1"></i> Add Your First Address
+          </button>
+        </div>
+      </div>
+    } @else {
+      <div class="col-md-6 col-xl-4">
+        <button class="btn btn-light border-2 border-dashed w-100 h-100 py-4 text-muted" style="min-height:180px" (click)="openCreate()">
+          <i class="bi bi-plus-circle display-6 d-block mb-2"></i>
+          Add New Address
+        </button>
+      </div>
+    }
+
+  </div>
+}
+
+<!-- Create / Edit Modal -->
+@if (showModal) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ editingId !== null ? 'Edit Address' : 'Add New Address' }}</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="form">
+
+            <!-- Label row -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Label</label>
+              <div class="d-flex gap-2">
+                @for (opt of labelOptions; track opt) {
+                  <div>
+                    <input type="radio" class="btn-check" [id]="'label-' + opt" formControlName="label" [value]="opt">
+                    <label class="btn btn-outline-primary btn-sm" [for]="'label-' + opt">
+                      <i class="bi me-1" [class]="getLabelIcon(opt)"></i>{{ opt }}
+                    </label>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Name row -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="firstName" placeholder="First name">
+                @if (firstName.invalid && firstName.touched) {
+                  <div class="text-danger small mt-1">First name is required.</div>
+                }
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="lastName" placeholder="Last name">
+                @if (lastName.invalid && lastName.touched) {
+                  <div class="text-danger small mt-1">Last name is required.</div>
+                }
+              </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Phone Number</label>
+              <input type="tel" class="form-control" formControlName="phoneNumber" placeholder="+1-555-0100">
+            </div>
+
+            <!-- Address lines -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Address Line 1 <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="addressLine1" placeholder="Street address, P.O. box">
+              @if (addressLine1.invalid && addressLine1.touched) {
+                <div class="text-danger small mt-1">Address is required.</div>
+              }
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Address Line 2</label>
+              <input type="text" class="form-control" formControlName="addressLine2" placeholder="Apartment, suite, unit, building (optional)">
+            </div>
+
+            <!-- City / State / Postal -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-5">
+                <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="city" placeholder="City">
+                @if (city.invalid && city.touched) {
+                  <div class="text-danger small mt-1">City is required.</div>
+                }
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">State / Province <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="state" placeholder="State">
+                @if (state.invalid && state.touched) {
+                  <div class="text-danger small mt-1">State is required.</div>
+                }
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">Postal Code <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="postalCode" placeholder="ZIP">
+                @if (postalCode.invalid && postalCode.touched) {
+                  <div class="text-danger small mt-1">Postal code is required.</div>
+                }
+              </div>
+            </div>
+
+            <!-- Country -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Country <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="country" placeholder="Country">
+              @if (country.invalid && country.touched) {
+                <div class="text-danger small mt-1">Country is required.</div>
+              }
+            </div>
+
+            <!-- Set as default -->
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" formControlName="setAsDefault" id="setDefault">
+              <label class="form-check-label" for="setDefault">
+                Set as my default shipping address
+              </label>
+            </div>
+
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="save()" [disabled]="saving">
+            @if (saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            {{ editingId !== null ? 'Save Changes' : 'Add Address' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation -->
+@if (showDeleteConfirm && deleteTarget) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-danger">Remove Address</h5>
+          <button type="button" class="btn-close" (click)="cancelDelete()"></button>
+        </div>
+        <div class="modal-body">
+          Remove <strong>{{ deleteTarget.label }}</strong> address for
+          <strong>{{ deleteTarget.firstName }} {{ deleteTarget.lastName }}</strong>?
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="cancelDelete()">Cancel</button>
+          <button class="btn btn-danger btn-sm" (click)="doDelete()">Remove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,70 @@
+<div class="page-header">
+  <h1 class="page-title">Vendor Management</h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item active">Vendors</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="card">
+  <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-1">
+      <h6 class="fw-semibold mb-0"><i class="bi bi-shop me-2 text-primary"></i>All Vendors</h6>
+      <span class="badge bg-primary-subtle text-primary rounded-pill ms-1">{{ total }}</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <app-data-table [columns]="columns" [data]="tableData" [loading]="loading"
+      (actionClick)="onAction($event)">
+    </app-data-table>
+  </div>
+  <div class="card-footer bg-white d-flex align-items-center justify-content-between flex-wrap gap-2 py-3">
+    <span class="text-muted small">Showing {{ vendors.length }} of {{ total }} vendors</span>
+    <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination>
+  </div>
+</div>
+
+<app-confirmation-dialog [visible]="confirmDialog.visible" [title]="confirmDialog.title"
+  [message]="confirmDialog.message"
+  [confirmLabel]="confirmDialog.action === 'delete' ? 'Delete' : 'Confirm'"
+  [confirmBtnClass]="confirmDialog.action === 'delete' ? 'btn-danger' : 'btn-primary'"
+  (confirmed)="confirmAction()" (cancelled)="confirmDialog.visible = false">
+</app-confirmation-dialog>
+
+<!-- KYC action modal -->
+@if (kycDialog.visible) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.4)">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold">
+            {{ kycDialog.action === 'approve' ? 'Approve KYC' : 'Reject KYC' }}
+          </h6>
+          <button type="button" class="btn-close" (click)="kycDialog.visible = false"></button>
+        </div>
+        <div class="modal-body">
+          @if (kycDialog.action === 'approve') {
+            <p class="mb-0">Are you sure you want to <strong>approve</strong> this vendor's KYC?</p>
+          } @else {
+            <div>
+              <p>Please provide a reason for rejection:</p>
+              <textarea class="form-control" rows="3" [(ngModel)]="kycDialog.rejectionReason"
+                        placeholder="Enter rejection reason (optional)"></textarea>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="kycDialog.visible = false">Cancel</button>
+          <button type="button" class="btn btn-sm"
+                  [class.btn-success]="kycDialog.action === 'approve'"
+                  [class.btn-danger]="kycDialog.action === 'reject'"
+                  (click)="confirmKycAction()">
+            {{ kycDialog.action === 'approve' ? 'Approve' : 'Reject' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

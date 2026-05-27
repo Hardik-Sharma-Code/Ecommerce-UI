@@ -1,0 +1,126 @@
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a routerLink="/vendor/products" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i> Back
+  </a>
+  <div>
+    <h2 class="mb-0">Add Product</h2>
+    <p class="text-muted mb-0">Create a new product listing</p>
+  </div>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="row g-4">
+    <!-- Left column -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Basic Information</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="name" placeholder="Enter product name">
+            @if (name.invalid && name.touched) {
+              <div class="text-danger small mt-1">Name is required (min 2 characters).</div>
+            }
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Short Description</label>
+            <input type="text" class="form-control" formControlName="shortDescription" placeholder="Brief summary (shown in listings)">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Full Description</label>
+            <textarea class="form-control" formControlName="description" rows="4" placeholder="Detailed product description"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">SKU</label>
+            <input type="text" class="form-control" formControlName="sku" placeholder="e.g. PROD-001">
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Pricing & Stock</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" formControlName="price" min="0.01" step="0.01">
+              </div>
+              @if (price.invalid && price.touched) {
+                <div class="text-danger small mt-1">Valid price required.</div>
+              }
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Sale Price</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" formControlName="discountedPrice" min="0" step="0.01" placeholder="Optional">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Stock Quantity <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" formControlName="stockQuantity" min="0">
+              @if (stockQuantity.invalid && stockQuantity.touched) {
+                <div class="text-danger small mt-1">Valid quantity required.</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Organisation</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="categoryId">
+              <option value="">— Select category —</option>
+              @for (cat of categories; track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+            @if (categoryId.invalid && categoryId.touched) {
+              <div class="text-danger small mt-1">Category is required.</div>
+            }
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Image URL</label>
+            <input type="url" class="form-control" formControlName="imageUrl" placeholder="https://...">
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Visibility</div>
+        <div class="card-body">
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" formControlName="isActive" id="isActive">
+            <label class="form-check-label" for="isActive">
+              <span class="fw-semibold">Active</span>
+              <br><small class="text-muted">Visible to customers</small>
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" formControlName="isFeatured" id="isFeatured">
+            <label class="form-check-label" for="isFeatured">
+              <span class="fw-semibold">Featured</span>
+              <br><small class="text-muted">Highlighted on homepage</small>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary" [disabled]="saving">
+          @if (saving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Create Product
+        </button>
+        <a routerLink="/vendor/products" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>

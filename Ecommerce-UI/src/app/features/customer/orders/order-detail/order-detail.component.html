@@ -1,0 +1,300 @@
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a routerLink="/customer/orders" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i> Orders
+  </a>
+  @if (order) {
+    <div>
+      <h2 class="mb-0">{{ order.orderNumber }}</h2>
+      <small class="text-muted">Placed {{ order.placedAt | date:'medium' }}</small>
+    </div>
+  }
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (!order) {
+  <div class="alert alert-warning">Order not found.</div>
+} @else {
+
+  <!-- Status banner -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge fs-6 px-3 py-2" [ngClass]="statusBadgeClass(order.statusName)">
+            {{ order.statusName }}
+          </span>
+          <span class="badge" [ngClass]="paymentBadgeClass(order.paymentStatusName)">
+            {{ order.paymentStatusName }}
+          </span>
+        </div>
+        <div class="d-flex gap-2">
+          @if (canCancel) {
+            <button class="btn btn-sm btn-outline-danger" (click)="openCancelModal()">
+              <i class="bi bi-x-circle me-1"></i> Cancel Order
+            </button>
+          }
+          @if (canRequestRefund) {
+            <button class="btn btn-sm btn-outline-warning" (click)="openRefundModal()">
+              <i class="bi bi-arrow-return-left me-1"></i> Request Refund
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Progress stepper (not shown for cancelled/refunded) -->
+      @if (!isCancelled) {
+        <div class="d-flex align-items-center mt-4 overflow-auto pb-1">
+          @for (step of orderStatusSteps; track step; let i = $index) {
+            <div class="d-flex align-items-center flex-shrink-0">
+              <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                  style="width:32px;height:32px;font-size:.75rem"
+                  [class.bg-primary]="i <= currentStep"
+                  [class.text-white]="i <= currentStep"
+                  [class.bg-light]="i > currentStep"
+                  [class.text-muted]="i > currentStep"
+                  [class.border]="i > currentStep">
+                  @if (i < currentStep) { <i class="bi bi-check"></i> } @else { {{ i + 1 }} }
+                </div>
+                <small class="mt-1 text-nowrap" [class.fw-semibold]="i === currentStep" [class.text-muted]="i > currentStep">{{ step }}</small>
+              </div>
+              @if (i < orderStatusSteps.length - 1) {
+                <div class="flex-grow-1 mx-2" style="height:2px;min-width:24px"
+                  [class.bg-primary]="i < currentStep"
+                  [class.bg-light]="i >= currentStep"></div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (order.cancellationReason) {
+        <div class="alert alert-secondary mt-3 mb-0 small">
+          <i class="bi bi-info-circle me-1"></i>
+          Cancellation reason: {{ order.cancellationReason }}
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left: items + shipment + refunds -->
+    <div class="col-lg-8">
+
+      <!-- Items -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Items ({{ order.items.length }})</div>
+        <div class="list-group list-group-flush">
+          @for (item of order.items; track item.id) {
+            <div class="list-group-item px-4 py-3">
+              <div class="d-flex gap-3 align-items-center">
+                @if (item.imageUrl) {
+                  <img [src]="item.imageUrl" class="rounded" width="56" height="56" style="object-fit:cover">
+                } @else {
+                  <div class="rounded bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width:56px;height:56px">
+                    <i class="bi bi-image text-muted"></i>
+                  </div>
+                }
+                <div class="flex-grow-1">
+                  <div class="fw-semibold">{{ item.productName }}</div>
+                  <small class="text-muted">SKU: {{ item.sku }}</small>
+                </div>
+                <div class="text-end">
+                  <div class="text-muted small">{{ item.unitPrice | currency }} × {{ item.quantity }}</div>
+                  <div class="fw-semibold">{{ item.subtotal | currency }}</div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Shipment -->
+      @if (order.shipment) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent fw-semibold">Shipment</div>
+          <div class="card-body">
+            @if (order.shipment.carrier) {
+              <div class="mb-1"><span class="text-muted me-2">Carrier:</span> {{ order.shipment.carrier }}</div>
+            }
+            @if (order.shipment.trackingNumber) {
+              <div class="mb-1">
+                <span class="text-muted me-2">Tracking:</span>
+                <span class="fw-mono fw-semibold">{{ order.shipment.trackingNumber }}</span>
+              </div>
+            }
+            @if (order.shipment.shippedAt) {
+              <div class="mb-1"><span class="text-muted me-2">Shipped:</span> {{ order.shipment.shippedAt | date:'medium' }}</div>
+            }
+            @if (order.shipment.estimatedDelivery) {
+              <div class="mb-1"><span class="text-muted me-2">Estimated:</span> {{ order.shipment.estimatedDelivery | date:'mediumDate' }}</div>
+            }
+            @if (order.shipment.deliveredAt) {
+              <div class="text-success"><i class="bi bi-check-circle me-1"></i>Delivered {{ order.shipment.deliveredAt | date:'medium' }}</div>
+            }
+            @if (order.shipment.trackingUrl) {
+              <div class="mt-2">
+                <a [href]="order.shipment.trackingUrl" target="_blank" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-box-arrow-up-right me-1"></i>Track Package
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Refunds -->
+      @if (order.refunds.length > 0) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent fw-semibold">Refunds</div>
+          <div class="list-group list-group-flush">
+            @for (refund of order.refunds; track refund.id) {
+              <div class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="badge me-2" [ngClass]="refundBadgeClass(refund.statusName)">{{ refund.statusName }}</span>
+                  <small class="text-muted">{{ refund.requestedAt | date:'mediumDate' }}</small>
+                  @if (refund.reason) { <div class="text-muted small mt-1">{{ refund.reason }}</div> }
+                  @if (refund.notes) { <div class="text-muted small fst-italic mt-1">{{ refund.notes }}</div> }
+                </div>
+                <span class="fw-semibold text-success">{{ refund.amount | currency }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Right: summary + address + payment -->
+    <div class="col-lg-4">
+
+      <!-- Order total -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Order Summary</div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Subtotal</span><span>{{ order.subtotal | currency }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Shipping</span><span>{{ order.shippingAmount | currency }}</span>
+          </div>
+          @if (order.discountAmount > 0) {
+            <div class="d-flex justify-content-between mb-2 text-success">
+              <span>Discount @if (order.couponCode) { <span class="badge bg-success-subtle text-success">{{ order.couponCode }}</span> }</span>
+              <span>-{{ order.discountAmount | currency }}</span>
+            </div>
+          }
+          @if (order.taxAmount > 0) {
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Tax</span><span>{{ order.taxAmount | currency }}</span>
+            </div>
+          }
+          <hr>
+          <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>Total</span><span class="text-primary">{{ order.totalAmount | currency }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping address -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Shipping Address</div>
+        <div class="card-body">
+          <p class="fw-semibold mb-1">{{ order.shippingFirstName }} {{ order.shippingLastName }}</p>
+          @if (order.shippingPhone) { <p class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i>{{ order.shippingPhone }}</p> }
+          <p class="text-muted small mb-0 white-space-pre-line">{{ order.shippingAddressLine1 }}<br>
+          @if (order.shippingAddressLine2) { {{ order.shippingAddressLine2 }}<br> }
+          {{ order.shippingCity }}, {{ order.shippingState }} {{ order.shippingPostalCode }}<br>
+          {{ order.shippingCountry }}</p>
+        </div>
+      </div>
+
+      <!-- Payment -->
+      @if (order.payment) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent fw-semibold">Payment</div>
+          <div class="card-body">
+            <div class="mb-1"><span class="text-muted me-2">Provider:</span> {{ order.payment.provider }}</div>
+            @if (order.payment.transactionId) {
+              <div class="mb-1"><span class="text-muted me-2">Transaction:</span><small class="font-monospace">{{ order.payment.transactionId }}</small></div>
+            }
+            @if (order.payment.paidAt) {
+              <div><span class="text-muted me-2">Paid:</span> {{ order.payment.paidAt | date:'medium' }}</div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (order.notes) {
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent fw-semibold">Notes</div>
+          <div class="card-body text-muted small">{{ order.notes }}</div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<!-- Refund Request Modal -->
+@if (refundModal.visible) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Request Refund</h5>
+          <button type="button" class="btn-close" (click)="closeRefundModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-3">Submit a refund request for <strong>{{ order?.orderNumber }}</strong>.</p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Refund Amount</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input type="number" class="form-control" [(ngModel)]="refundModal.amount"
+                min="0.01" [max]="order?.totalAmount ?? 0" step="0.01">
+            </div>
+            <div class="form-text">Max: {{ order?.totalAmount | currency }}</div>
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Reason <span class="text-danger">*</span></label>
+            <textarea class="form-control" [(ngModel)]="refundModal.reason" rows="3"
+              placeholder="Please explain why you are requesting a refund..." maxlength="500"></textarea>
+            <div class="form-text">{{ refundModal.reason.length }}/500</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeRefundModal()">Cancel</button>
+          <button class="btn btn-warning" (click)="submitRefund()"
+            [disabled]="submittingRefund || !refundModal.reason.trim()">
+            @if (submittingRefund) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            Submit Request
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Cancel Modal -->
+@if (cancelModal.visible) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Cancel Order</h5>
+          <button type="button" class="btn-close" (click)="closeCancelModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-3">Are you sure you want to cancel <strong>{{ order?.orderNumber }}</strong>?</p>
+          <label class="form-label fw-semibold">Reason (optional)</label>
+          <textarea class="form-control" [(ngModel)]="cancelModal.reason" rows="3"
+            placeholder="Let us know why you're cancelling..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeCancelModal()">Keep Order</button>
+          <button class="btn btn-danger" (click)="confirmCancel()">Yes, Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

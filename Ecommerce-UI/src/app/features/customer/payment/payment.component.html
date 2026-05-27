@@ -1,0 +1,242 @@
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a routerLink="/customer/orders" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i> Orders
+  </a>
+  <h2 class="mb-0">Complete Payment</h2>
+</div>
+
+@if (orderLoading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (!order) {
+  <div class="alert alert-warning">Order not found.</div>
+} @else {
+  <div class="row g-4 justify-content-center">
+    <div class="col-lg-5">
+
+      <!-- SUCCESS -->
+      @if (state === 'success') {
+        <div class="card border-0 shadow-sm text-center py-5">
+          <div class="mb-3">
+            <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center"
+              style="width:72px;height:72px">
+              <i class="bi bi-check-lg text-white" style="font-size:2rem"></i>
+            </div>
+          </div>
+          <h4 class="fw-bold mb-1">Payment Successful</h4>
+          @if (payment) {
+            <p class="text-muted mb-1">{{ payment.amount | currency: payment.currency }} via {{ payment.gatewayName }}</p>
+            @if (payment.gatewayPaymentId) {
+              <p class="text-muted small font-monospace mb-3">{{ payment.gatewayPaymentId }}</p>
+            }
+          } @else {
+            <p class="text-muted mb-3">{{ order.totalAmount | currency }} paid</p>
+          }
+          <a [routerLink]="['/customer/orders', orderId]" class="btn btn-primary mx-auto" style="width:fit-content">
+            <i class="bi bi-bag-check me-1"></i> View Order
+          </a>
+        </div>
+      }
+
+      <!-- FAILED -->
+      @if (state === 'failed') {
+        <div class="card border-0 shadow-sm text-center py-5">
+          <div class="mb-3">
+            <div class="rounded-circle bg-danger d-inline-flex align-items-center justify-content-center"
+              style="width:72px;height:72px">
+              <i class="bi bi-x-lg text-white" style="font-size:2rem"></i>
+            </div>
+          </div>
+          <h4 class="fw-bold mb-1">Payment Failed</h4>
+          @if (failureReason) {
+            <p class="text-muted mb-3 px-4">{{ failureReason }}</p>
+          }
+          <div class="d-flex gap-2 justify-content-center">
+            <button class="btn btn-primary" (click)="retry()">
+              <i class="bi bi-arrow-repeat me-1"></i> Try Again
+            </button>
+            <a [routerLink]="['/customer/orders', orderId]" class="btn btn-outline-secondary">View Order</a>
+          </div>
+        </div>
+      }
+
+      <!-- VERIFYING -->
+      @if (state === 'verifying') {
+        <div class="card border-0 shadow-sm text-center py-5">
+          <div class="spinner-border text-primary mb-3 mx-auto"></div>
+          <h5 class="text-muted">Verifying payment…</h5>
+          <p class="text-muted small">Please do not close this window.</p>
+        </div>
+      }
+
+      <!-- GATEWAY SELECTION -->
+      @if (state === 'selecting' || state === 'initiating') {
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent fw-semibold">
+            <i class="bi bi-credit-card me-2"></i>Select Payment Method
+          </div>
+          <div class="card-body">
+
+            <!-- Gateway cards -->
+            <div class="d-flex flex-column gap-2 mb-4">
+              <label class="d-flex gap-3 align-items-center p-3 rounded border"
+                [class.border-primary]="selectedGateway === PaymentGatewayType.Razorpay"
+                [class.bg-primary-subtle]="selectedGateway === PaymentGatewayType.Razorpay"
+                style="cursor:pointer">
+                <input type="radio" class="form-check-input flex-shrink-0"
+                  [value]="PaymentGatewayType.Razorpay" [(ngModel)]="selectedGateway">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="rounded d-flex align-items-center justify-content-center bg-white border"
+                    style="width:44px;height:44px;flex-shrink:0">
+                    <span class="fw-bold text-primary" style="font-size:.7rem">RZP</span>
+                  </div>
+                  <div>
+                    <div class="fw-semibold">Razorpay</div>
+                    <small class="text-muted">UPI · Cards · Netbanking · Wallets</small>
+                  </div>
+                </div>
+              </label>
+
+              <label class="d-flex gap-3 align-items-center p-3 rounded border"
+                [class.border-primary]="selectedGateway === PaymentGatewayType.Stripe"
+                [class.bg-primary-subtle]="selectedGateway === PaymentGatewayType.Stripe"
+                style="cursor:pointer">
+                <input type="radio" class="form-check-input flex-shrink-0"
+                  [value]="PaymentGatewayType.Stripe" [(ngModel)]="selectedGateway">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="rounded d-flex align-items-center justify-content-center bg-white border"
+                    style="width:44px;height:44px;flex-shrink:0">
+                    <span class="fw-bold" style="font-size:.7rem;color:#6772e5">STRIPE</span>
+                  </div>
+                  <div>
+                    <div class="fw-semibold">Stripe</div>
+                    <small class="text-muted">International Cards · Apple Pay</small>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Currency -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Currency</label>
+              <select class="form-select" [(ngModel)]="currency">
+                @for (c of currencyOptions; track c) {
+                  <option [value]="c">{{ c }}</option>
+                }
+              </select>
+            </div>
+
+            <button class="btn btn-primary w-100 py-2 fs-5"
+              (click)="pay()" [disabled]="state === 'initiating'">
+              @if (state === 'initiating') {
+                <span class="spinner-border spinner-border-sm me-2"></span>Loading…
+              } @else {
+                <i class="bi bi-lock-fill me-2"></i>Pay {{ order.totalAmount | currency: currency }}
+              }
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- STRIPE CARD FORM -->
+      @if (state === 'stripe-form') {
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent d-flex align-items-center gap-2">
+            <button class="btn btn-link p-0 text-muted" (click)="retry()" title="Change method">
+              <i class="bi bi-arrow-left"></i>
+            </button>
+            <span class="fw-semibold">Card Details</span>
+            <span class="ms-auto badge" style="background:#6772e5">Stripe</span>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Card Information</label>
+              <div #stripeCard id="stripe-card-element"
+                class="form-control py-3"
+                style="height:auto;min-height:44px"></div>
+              @if (cardError) {
+                <div class="text-danger small mt-1">{{ cardError }}</div>
+              }
+            </div>
+
+            <div class="d-flex align-items-center gap-2 text-muted small mb-4">
+              <i class="bi bi-shield-lock-fill text-success"></i>
+              Your payment info is encrypted and processed securely by Stripe.
+            </div>
+
+            <button class="btn btn-primary w-100 py-2 fs-5" (click)="confirmStripe()">
+              <i class="bi bi-lock-fill me-2"></i>Pay {{ order.totalAmount | currency: (initiatedData?.currency ?? 'USD') }}
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <!-- Order summary -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm sticky-top" style="top:1.5rem">
+        <div class="card-header bg-transparent fw-semibold">Order Summary</div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Order</span>
+            <span class="fw-semibold font-monospace small">{{ order.orderNumber }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Items</span>
+            <span>{{ order.items.length }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Subtotal</span>
+            <span>{{ order.subtotal | currency }}</span>
+          </div>
+          @if (order.shippingAmount > 0) {
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Shipping</span>
+              <span>{{ order.shippingAmount | currency }}</span>
+            </div>
+          }
+          @if (order.discountAmount > 0) {
+            <div class="d-flex justify-content-between mb-1 text-success">
+              <span>Discount</span>
+              <span>-{{ order.discountAmount | currency }}</span>
+            </div>
+          }
+          @if (order.taxAmount > 0) {
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Tax</span>
+              <span>{{ order.taxAmount | currency }}</span>
+            </div>
+          }
+          <hr>
+          <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>Total</span>
+            <span class="text-primary">{{ order.totalAmount | currency }}</span>
+          </div>
+        </div>
+
+        <!-- Items mini list -->
+        <div class="list-group list-group-flush border-top">
+          @for (item of order.items; track item.id) {
+            <div class="list-group-item px-4 py-2 d-flex justify-content-between align-items-center gap-2">
+              <div class="d-flex align-items-center gap-2 min-w-0">
+                @if (item.imageUrl) {
+                  <img [src]="item.imageUrl" class="rounded flex-shrink-0" width="32" height="32" style="object-fit:cover">
+                } @else {
+                  <div class="rounded bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px">
+                    <i class="bi bi-image text-muted" style="font-size:.65rem"></i>
+                  </div>
+                }
+                <div class="text-truncate small">{{ item.productName }}</div>
+              </div>
+              <div class="text-end small flex-shrink-0">
+                <div class="text-muted">× {{ item.quantity }}</div>
+                <div class="fw-semibold">{{ item.subtotal | currency }}</div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+  </div>
+}

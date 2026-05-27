@@ -1,0 +1,132 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">Orders</h2>
+    <p class="text-muted mb-0">{{ total }} total order{{ total !== 1 ? 's' : '' }}</p>
+  </div>
+</div>
+
+<!-- Filter -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Status</label>
+        <select class="form-select" [(ngModel)]="filterStatus" (change)="applyFilter()">
+          <option value="">All Statuses</option>
+          @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" (click)="filterStatus = ''; applyFilter()">
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else {
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Order</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (orders.length === 0) {
+            <tr><td colspan="7" class="text-center text-muted py-4">No orders found.</td></tr>
+          }
+          @for (order of orders; track order.id) {
+            <tr>
+              <td class="fw-semibold">{{ order.orderNumber }}</td>
+              <td><small class="text-muted">{{ order.placedAt | date:'mediumDate' }}</small></td>
+              <td><span class="badge bg-light text-dark border">{{ order.itemCount }}</span></td>
+              <td class="fw-semibold">{{ order.totalAmount | currency }}</td>
+              <td>
+                <span class="badge" [ngClass]="statusBadgeClass(order.statusName)">{{ order.statusName }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="paymentBadgeClass(order.paymentStatusName)">{{ order.paymentStatusName }}</span>
+              </td>
+              <td class="text-end">
+                <a [routerLink]="['/admin/orders', order.id]" class="btn btn-sm btn-outline-primary me-1" title="View">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <button class="btn btn-sm btn-outline-secondary" (click)="openStatusModal(order)" title="Update Status">
+                  <i class="bi bi-arrow-repeat"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  @if (totalPages > 1) {
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center mb-0">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button class="page-link" (click)="onPageChange(currentPage - 1)">Previous</button>
+        </li>
+        @for (page of pages; track page) {
+          <li class="page-item" [class.active]="page === currentPage">
+            <button class="page-link" (click)="onPageChange(page)">{{ page }}</button>
+          </li>
+        }
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button class="page-link" (click)="onPageChange(currentPage + 1)">Next</button>
+        </li>
+      </ul>
+    </nav>
+  }
+}
+
+<!-- Update Status Modal -->
+@if (statusModal.visible) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Update Order Status</h5>
+          <button type="button" class="btn-close" (click)="closeStatusModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-3">
+            Order <strong>{{ statusModal.orderNumber }}</strong> — currently
+            <span class="badge" [ngClass]="statusBadgeClass(statusModal.currentStatus)">{{ statusModal.currentStatus }}</span>
+          </p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">New Status <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="statusModal.newStatus">
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="mb-0">
+            <label class="form-label fw-semibold">Notes (optional)</label>
+            <textarea class="form-control" [(ngModel)]="statusModal.notes" rows="2"
+              placeholder="Internal note about this status change..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeStatusModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveStatus()">Update Status</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

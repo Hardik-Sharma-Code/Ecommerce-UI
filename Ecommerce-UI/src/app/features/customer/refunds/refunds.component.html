@@ -1,0 +1,48 @@
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h2 class="mb-0">My Refunds</h2>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (refunds.length === 0) {
+  <div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5 text-muted">
+      <i class="bi bi-arrow-return-left fs-1 d-block mb-3"></i>
+      <p class="mb-0">No refunds found.</p>
+      <a routerLink="/customer/orders" class="btn btn-outline-primary mt-3 btn-sm">View Orders</a>
+    </div>
+  </div>
+} @else {
+  <div class="card border-0 shadow-sm">
+    <div class="list-group list-group-flush">
+      @for (refund of refunds; track refund.id) {
+        <div class="list-group-item px-4 py-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge" [ngClass]="badgeClass(refund.statusName)">{{ refund.statusName }}</span>
+                <a [routerLink]="['/customer/orders', refund.orderId]" class="fw-semibold text-decoration-none small">
+                  {{ refund.orderNumber }}
+                </a>
+              </div>
+              <p class="text-muted small mb-1">{{ refund.reason }}</p>
+              <small class="text-muted">Requested {{ refund.requestedAt | date:'mediumDate' }}</small>
+              @if (refund.processedAt) {
+                <small class="text-muted ms-3">· Processed {{ refund.processedAt | date:'mediumDate' }}</small>
+              }
+              @if (refund.notes) {
+                <p class="text-muted small mb-0 mt-1 fst-italic">Note: {{ refund.notes }}</p>
+              }
+            </div>
+            <div class="text-end">
+              <div class="fw-bold fs-5 text-primary">{{ refund.amount | currency }}</div>
+              @if (refund.gatewayRefundId) {
+                <small class="text-muted font-monospace">{{ refund.gatewayRefundId }}</small>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

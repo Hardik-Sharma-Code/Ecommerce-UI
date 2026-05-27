@@ -1,0 +1,82 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0">
+    <thead>
+      <tr>
+        @for (col of columns; track col.key) {
+          <th [class.cursor-pointer]="col.sortable" (click)="sort(col.key)">
+            {{ col.label }}
+            @if (col.sortable) {
+              <i class="bi ms-1"
+                 [class.bi-arrow-up]="sortColumn === col.key && sortDirection === 'asc'"
+                 [class.bi-arrow-down]="sortColumn === col.key && sortDirection === 'desc'"
+                 [class.bi-arrow-down-up]="sortColumn !== col.key"
+                 [class.text-primary]="sortColumn === col.key"
+                 [class.text-muted]="sortColumn !== col.key">
+              </i>
+            }
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @if (loading) {
+        @for (i of [1,2,3,4,5]; track i) {
+          <tr>
+            @for (col of columns; track col.key) {
+              <td><div class="placeholder-glow"><span class="placeholder col-8 rounded"></span></div></td>
+            }
+          </tr>
+        }
+      } @else if (!data.length) {
+        <tr>
+          <td [attr.colspan]="columns.length" class="p-0 border-0">
+            <app-no-data />
+          </td>
+        </tr>
+      } @else {
+        @for (row of data; track $index) {
+          <tr>
+            @for (col of columns; track col.key) {
+              <td>
+                @switch (col.type) {
+                  @case ('badge') {
+                    <span class="badge {{ getBadgeClass(col, getCellValue(row, col.key)) }}">
+                      {{ getCellValue(row, col.key) }}
+                    </span>
+                  }
+                  @case ('date') {
+                    {{ $any(getCellValue(row, col.key)) | date:'dd MMM yyyy' }}
+                  }
+                  @case ('avatar') {
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="avatar" style="width:32px;height:32px;font-size:.75rem;background:var(--primary-color);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;">
+                        {{ ($any(getCellValue(row, col.key)) || '?')[0]?.toUpperCase() }}
+                      </div>
+                      <span>{{ getCellValue(row, col.key) }}</span>
+                    </div>
+                  }
+                  @case ('actions') {
+                    <div class="d-flex gap-1">
+                      <button class="btn btn-sm btn-outline-primary" title="View" (click)="onAction('view', row)">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-warning" title="Toggle Status" (click)="onAction('toggle', row)">
+                        <i class="bi bi-toggle-on"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" title="Delete" (click)="onAction('delete', row)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  }
+                  @default {
+                    {{ getCellValue(row, col.key) ?? '—' }}
+                  }
+                }
+              </td>
+            }
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>

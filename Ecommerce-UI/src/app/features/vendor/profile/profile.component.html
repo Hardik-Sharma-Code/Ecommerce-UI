@@ -1,0 +1,91 @@
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h1 class="page-title">Vendor Profile</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a routerLink="/vendor/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Profile</li>
+        </ol>
+      </nav>
+    </div>
+    <a routerLink="/vendor/edit-profile" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil me-1"></i>Edit Profile
+    </a>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+} @else if (profile) {
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card text-center p-4">
+        <div class="profile-avatar-large">{{ initials }}</div>
+        <h5 class="fw-semibold mb-1">{{ fullName }}</h5>
+        <p class="text-muted small mb-2">{{ profile.email }}</p>
+        <p class="text-muted small mb-3">{{ profile.businessName }}</p>
+        <div class="kyc-badge {{ kycBadgeClass }} mx-auto">
+          <i class="bi bi-shield-check"></i>KYC {{ profile.kycStatus | titlecase }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-semibold mb-0"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Business Information</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">First Name</label>
+              <span class="fw-medium">{{ profile.firstName }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Last Name</label>
+              <span class="fw-medium">{{ profile.lastName }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Business Name</label>
+              <span class="fw-medium">{{ profile.businessName }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Business Phone</label>
+              <span class="fw-medium">{{ profile.businessPhone ?? '—' }}</span>
+            </div>
+            <div class="col-12">
+              <label class="text-muted small d-block">Business Description</label>
+              <span class="fw-medium">{{ profile.businessDescription ?? '—' }}</span>
+            </div>
+            <div class="col-12">
+              <label class="text-muted small d-block">Business Address</label>
+              <span class="fw-medium">{{ profile.businessAddress ?? '—' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-semibold mb-0"><i class="bi bi-shield-check me-2 text-primary"></i>KYC Status</h6>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3">
+            <div class="kyc-badge {{ kycBadgeClass }}">
+              <i class="bi bi-shield-check"></i>{{ profile.kycStatus | titlecase }}
+            </div>
+            @if (profile.kycStatus !== KycStatus.Approved) {
+              <a routerLink="/vendor/kyc" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-upload me-1"></i>Submit Documents
+              </a>
+            }
+            <a routerLink="/vendor/kyc-status" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-eye me-1"></i>View Status
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

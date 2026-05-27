@@ -1,0 +1,153 @@
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h2 class="mb-0">My Reviews</h2>
+  <button class="btn btn-primary btn-sm" (click)="openCreate()">
+    <i class="bi bi-plus-lg me-1"></i> Write Review
+  </button>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (reviews.length === 0) {
+  <div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5 text-muted">
+      <i class="bi bi-star fs-1 d-block mb-3"></i>
+      <p class="mb-2">You haven't written any reviews yet.</p>
+      <button class="btn btn-outline-primary btn-sm" (click)="openCreate()">Write your first review</button>
+    </div>
+  </div>
+} @else {
+  <div class="d-flex flex-column gap-3">
+    @for (review of reviews; track review.id) {
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+            <div>
+              <div class="fw-semibold mb-1">{{ review.productName }}</div>
+              <div class="d-flex gap-1 mb-2">
+                @for (star of stars; track star) {
+                  <i class="bi" [class.bi-star-fill]="star <= review.rating"
+                     [class.bi-star]="star > review.rating"
+                     [class.text-warning]="star <= review.rating"
+                     [class.text-muted]="star > review.rating"></i>
+                }
+              </div>
+              <div class="fw-semibold mb-1">{{ review.title }}</div>
+              <p class="text-muted small mb-2">{{ review.body }}</p>
+              <div class="d-flex gap-2 flex-wrap">
+                @if (review.isVerifiedPurchase) {
+                  <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                    <i class="bi bi-check-circle me-1"></i>Verified Purchase
+                  </span>
+                }
+                <span class="badge" [ngClass]="review.isApproved ? 'bg-primary' : 'bg-warning text-dark'">
+                  {{ review.isApproved ? 'Approved' : 'Pending Approval' }}
+                </span>
+                <small class="text-muted">{{ review.createdAt | date:'mediumDate' }}</small>
+              </div>
+            </div>
+            <div class="d-flex gap-2 flex-shrink-0">
+              <button class="btn btn-outline-secondary btn-sm" (click)="openEdit(review)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              @if (deleteConfirmId === review.id) {
+                <div class="d-flex gap-1">
+                  <button class="btn btn-danger btn-sm" (click)="deleteReview(review.id)">Delete</button>
+                  <button class="btn btn-secondary btn-sm" (click)="cancelDelete()">Cancel</button>
+                </div>
+              } @else {
+                <button class="btn btn-outline-danger btn-sm" (click)="confirmDelete(review.id)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (totalPages > 1) {
+    <nav class="mt-4 d-flex justify-content-center">
+      <ul class="pagination">
+        <li class="page-item" [class.disabled]="page === 1">
+          <button class="page-link" (click)="goToPage(page - 1)">‹</button>
+        </li>
+        @for (p of [].constructor(totalPages); track $index) {
+          <li class="page-item" [class.active]="$index + 1 === page">
+            <button class="page-link" (click)="goToPage($index + 1)">{{ $index + 1 }}</button>
+          </li>
+        }
+        <li class="page-item" [class.disabled]="page === totalPages">
+          <button class="page-link" (click)="goToPage(page + 1)">›</button>
+        </li>
+      </ul>
+    </nav>
+  }
+}
+
+<!-- Create / Edit Modal -->
+@if (modal.visible) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ modal.mode === 'create' ? 'Write Review' : 'Edit Review' }}</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+
+          @if (modal.mode === 'create') {
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Product ID <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" [(ngModel)]="modal.productId"
+                placeholder="Enter the product ID you want to review" min="1">
+            </div>
+          } @else {
+            <div class="mb-3">
+              <span class="text-muted small">Reviewing: </span>
+              <span class="fw-semibold">{{ modal.productName }}</span>
+            </div>
+          }
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Your Rating <span class="text-danger">*</span></label>
+            <div class="d-flex gap-2">
+              @for (star of stars; track star) {
+                <i class="bi fs-3"
+                   [class.bi-star-fill]="star <= modal.rating"
+                   [class.bi-star]="star > modal.rating"
+                   [class.text-warning]="star <= modal.rating"
+                   [class.text-muted]="star > modal.rating"
+                   style="cursor:pointer"
+                   (click)="modal.rating = star"></i>
+              }
+              <span class="ms-2 text-muted align-self-center small">{{ modal.rating }} / 5</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="modal.title"
+              placeholder="Summarize your experience" maxlength="200">
+            <div class="form-text">{{ modal.title.length }}/200</div>
+          </div>
+
+          <div>
+            <label class="form-label fw-semibold">Review <span class="text-danger">*</span></label>
+            <textarea class="form-control" [(ngModel)]="modal.body" rows="5"
+              placeholder="Share your detailed experience with this product..." maxlength="2000"></textarea>
+            <div class="form-text">{{ modal.body.length }}/2000</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="submit()" [disabled]="submitting || !canSubmit">
+            @if (submitting) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            {{ modal.mode === 'create' ? 'Submit Review' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

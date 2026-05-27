@@ -1,0 +1,101 @@
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h1 class="page-title">Welcome back, {{ userName }}! 👋</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+      </nav>
+    </div>
+    <a routerLink="/customer/profile" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-person me-1"></i>View Profile
+    </a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card" style="background: linear-gradient(135deg,#667eea,#764ba2); color:#fff;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);">
+        <i class="bi bi-cart-check"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats?.totalOrders ?? 0 }}</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.8);">Total Orders</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card" style="background: linear-gradient(135deg,#f093fb,#f5576c); color:#fff;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats?.pendingOrders ?? 0 }}</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.8);">Pending Orders</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card" style="background: linear-gradient(135deg,#4facfe,#00f2fe); color:#fff;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);">
+        <i class="bi bi-heart"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats?.totalWishlist ?? 0 }}</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.8);">Wishlist Items</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card" style="background: linear-gradient(135deg,#43e97b,#38f9d7); color:#fff;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);">
+        <i class="bi bi-currency-dollar"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats?.totalSpent | currency:'USD':'symbol':'1.0-0' }}</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.8);">Total Spent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="card">
+  <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3">
+    <h6 class="fw-semibold mb-0"><i class="bi bi-receipt me-2 text-primary"></i>Recent Orders</h6>
+    <a href="#" class="btn btn-sm btn-outline-primary">View All Orders</a>
+  </div>
+  <div class="card-body p-0">
+    @if (loading) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+      </div>
+    } @else if (stats?.recentOrders?.length) {
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr>
+            <th>Order #</th><th>Items</th><th>Amount</th><th>Status</th><th>Date</th>
+          </tr></thead>
+          <tbody>
+            @for (order of stats!.recentOrders; track order.id) {
+              <tr>
+                <td class="fw-medium">{{ order.orderNumber }}</td>
+                <td>{{ order.itemCount }} item{{ order.itemCount > 1 ? 's' : '' }}</td>
+                <td class="fw-semibold">{{ order.total | currency }}</td>
+                <td><span class="badge {{ getStatusBadge(order.status) }}">{{ order.status }}</span></td>
+                <td class="text-muted small">{{ order.createdAt | date:'dd MMM yyyy' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1 d-block mb-2"></i>No orders yet
+      </div>
+    }
+  </div>
+</div>

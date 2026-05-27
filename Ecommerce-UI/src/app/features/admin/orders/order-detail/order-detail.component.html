@@ -1,0 +1,310 @@
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a routerLink="/admin/orders" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i> Orders
+  </a>
+  @if (order) {
+    <div class="flex-grow-1">
+      <h2 class="mb-0">{{ order.orderNumber }}</h2>
+      <small class="text-muted">Placed {{ order.placedAt | date:'medium' }}</small>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" (click)="openTrackingModal()">
+        <i class="bi bi-truck me-1"></i> Tracking
+      </button>
+      @if (order.shipment) {
+        <button class="btn btn-outline-secondary btn-sm" (click)="openShipmentStatusModal()">
+          <i class="bi bi-geo-alt me-1"></i> Shipment Status
+        </button>
+      }
+      <button class="btn btn-outline-primary btn-sm" (click)="openStatusModal()">
+        <i class="bi bi-arrow-repeat me-1"></i> Order Status
+      </button>
+    </div>
+  }
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (!order) {
+  <div class="alert alert-warning">Order not found.</div>
+} @else {
+
+  <!-- Status bar -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex gap-2 align-items-center mb-3">
+        <span class="badge fs-6 px-3 py-2" [ngClass]="statusBadgeClass(order.statusName)">{{ order.statusName }}</span>
+        <span class="badge" [ngClass]="paymentBadgeClass(order.paymentStatusName)">{{ order.paymentStatusName }}</span>
+      </div>
+
+      @if (!isCancelled) {
+        <div class="d-flex align-items-center overflow-auto pb-1">
+          @for (step of orderStatusSteps; track step; let i = $index) {
+            <div class="d-flex align-items-center flex-shrink-0">
+              <div class="d-flex flex-column align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                  style="width:32px;height:32px;font-size:.75rem"
+                  [class.bg-primary]="i <= currentStep" [class.text-white]="i <= currentStep"
+                  [class.bg-light]="i > currentStep" [class.text-muted]="i > currentStep" [class.border]="i > currentStep">
+                  @if (i < currentStep) { <i class="bi bi-check"></i> } @else { {{ i + 1 }} }
+                </div>
+                <small class="mt-1 text-nowrap" [class.fw-semibold]="i === currentStep" [class.text-muted]="i > currentStep">{{ step }}</small>
+              </div>
+              @if (i < orderStatusSteps.length - 1) {
+                <div class="flex-grow-1 mx-2" style="height:2px;min-width:24px"
+                  [class.bg-primary]="i < currentStep" [class.bg-light]="i >= currentStep"></div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (order.cancellationReason) {
+        <div class="alert alert-secondary mt-3 mb-0 small">
+          <i class="bi bi-info-circle me-1"></i> Cancellation reason: {{ order.cancellationReason }}
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <!-- Items -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Items ({{ order.items.length }})</div>
+        <div class="list-group list-group-flush">
+          @for (item of order.items; track item.id) {
+            <div class="list-group-item px-4 py-3">
+              <div class="d-flex gap-3 align-items-center">
+                @if (item.imageUrl) {
+                  <img [src]="item.imageUrl" class="rounded" width="56" height="56" style="object-fit:cover">
+                } @else {
+                  <div class="rounded bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width:56px;height:56px">
+                    <i class="bi bi-image text-muted"></i>
+                  </div>
+                }
+                <div class="flex-grow-1">
+                  <div class="fw-semibold">{{ item.productName }}</div>
+                  <small class="text-muted">SKU: {{ item.sku }}</small>
+                </div>
+                <div class="text-end">
+                  <div class="text-muted small">{{ item.unitPrice | currency }} × {{ item.quantity }}</div>
+                  <div class="fw-semibold">{{ item.subtotal | currency }}</div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Shipment -->
+      @if (order.shipment) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Shipment</span>
+            <span class="badge" [ngClass]="shipmentBadgeClass(order.shipment.statusName)">{{ order.shipment.statusName }}</span>
+          </div>
+          <div class="card-body">
+            <div class="mb-1"><span class="text-muted me-2">Carrier:</span>{{ order.shipment.carrier }}</div>
+            @if (order.shipment.trackingNumber) {
+              <div class="mb-1">
+                <span class="text-muted me-2">Tracking:</span>
+                <span class="font-monospace">{{ order.shipment.trackingNumber }}</span>
+              </div>
+            }
+            @if (order.shipment.trackingUrl) {
+              <div class="mb-1">
+                <a [href]="order.shipment.trackingUrl" target="_blank" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-box-arrow-up-right me-1"></i>Track Package
+                </a>
+              </div>
+            }
+            @if (order.shipment.shippedAt) { <div class="mb-1"><span class="text-muted me-2">Shipped:</span>{{ order.shipment.shippedAt | date:'medium' }}</div> }
+            @if (order.shipment.estimatedDelivery) { <div class="mb-1"><span class="text-muted me-2">Est. Delivery:</span>{{ order.shipment.estimatedDelivery | date:'mediumDate' }}</div> }
+            @if (order.shipment.deliveredAt) { <div class="text-success"><i class="bi bi-check-circle me-1"></i>Delivered {{ order.shipment.deliveredAt | date:'medium' }}</div> }
+            @if (order.shipment.notes) { <div class="text-muted small mt-2 fst-italic">{{ order.shipment.notes }}</div> }
+          </div>
+        </div>
+      } @else {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body text-center py-3 text-muted small">
+            <i class="bi bi-truck me-1"></i>No tracking info yet.
+            <button class="btn btn-link btn-sm p-0 ms-1" (click)="openTrackingModal()">Add tracking</button>
+          </div>
+        </div>
+      }
+
+      @if (order.refunds.length > 0) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent fw-semibold">Refunds</div>
+          <div class="list-group list-group-flush">
+            @for (refund of order.refunds; track refund.id) {
+              <div class="list-group-item px-4 py-3 d-flex justify-content-between">
+                <div>
+                  <span class="badge me-2" [ngClass]="refundBadgeClass(refund.statusName)">{{ refund.statusName }}</span>
+                  <small class="text-muted">{{ refund.requestedAt | date:'mediumDate' }}</small>
+                  @if (refund.reason) { <div class="text-muted small mt-1">{{ refund.reason }}</div> }
+                  @if (refund.notes) { <div class="text-muted small fst-italic mt-1">{{ refund.notes }}</div> }
+                </div>
+                <span class="fw-semibold text-success">{{ refund.amount | currency }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="col-lg-4">
+      <!-- Summary -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Order Summary</div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2"><span class="text-muted">Subtotal</span><span>{{ order.subtotal | currency }}</span></div>
+          <div class="d-flex justify-content-between mb-2"><span class="text-muted">Shipping</span><span>{{ order.shippingAmount | currency }}</span></div>
+          @if (order.discountAmount > 0) { <div class="d-flex justify-content-between mb-2 text-success"><span>Discount</span><span>-{{ order.discountAmount | currency }}</span></div> }
+          @if (order.taxAmount > 0) { <div class="d-flex justify-content-between mb-2"><span class="text-muted">Tax</span><span>{{ order.taxAmount | currency }}</span></div> }
+          <hr>
+          <div class="d-flex justify-content-between fw-bold fs-5"><span>Total</span><span class="text-primary">{{ order.totalAmount | currency }}</span></div>
+        </div>
+      </div>
+
+      <!-- Shipping address -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Shipping Address</div>
+        <div class="card-body small text-muted">
+          <p class="fw-semibold text-dark mb-1">{{ order.shippingFirstName }} {{ order.shippingLastName }}</p>
+          @if (order.shippingPhone) { <p class="mb-1">{{ order.shippingPhone }}</p> }
+          <p class="mb-0">{{ order.shippingAddressLine1 }}<br>
+          @if (order.shippingAddressLine2) { {{ order.shippingAddressLine2 }}<br> }
+          {{ order.shippingCity }}, {{ order.shippingState }} {{ order.shippingPostalCode }}<br>
+          {{ order.shippingCountry }}</p>
+        </div>
+      </div>
+
+      @if (order.payment) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent fw-semibold">Payment</div>
+          <div class="card-body small">
+            <div class="mb-1"><span class="text-muted me-2">Provider:</span>{{ order.payment.provider }}</div>
+            @if (order.payment.transactionId) { <div class="mb-1"><span class="text-muted me-2">TXN:</span><span class="font-monospace">{{ order.payment.transactionId }}</span></div> }
+            @if (order.payment.paidAt) { <div><span class="text-muted me-2">Paid:</span>{{ order.payment.paidAt | date:'medium' }}</div> }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<!-- Update Tracking Modal -->
+@if (trackingModal.visible && order) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ order.shipment ? 'Update Tracking' : 'Add Tracking' }} — {{ order.orderNumber }}</h5>
+          <button type="button" class="btn-close" (click)="closeTrackingModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Carrier <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="trackingModal.carrier" placeholder="e.g. FedEx, UPS, DTDC">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tracking Number</label>
+            <input type="text" class="form-control" [(ngModel)]="trackingModal.trackingNumber" placeholder="Optional">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tracking URL</label>
+            <input type="url" class="form-control" [(ngModel)]="trackingModal.trackingUrl" placeholder="https://...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Estimated Delivery</label>
+            <input type="date" class="form-control" [(ngModel)]="trackingModal.estimatedDelivery">
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Notes</label>
+            <textarea class="form-control" [(ngModel)]="trackingModal.notes" rows="2" maxlength="500"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeTrackingModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveTracking()"
+            [disabled]="savingTracking || !trackingModal.carrier.trim()">
+            @if (savingTracking) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Update Shipment Status Modal -->
+@if (shipmentStatusModal.visible && order) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Update Shipment Status — {{ order.orderNumber }}</h5>
+          <button type="button" class="btn-close" (click)="closeShipmentStatusModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Shipment Status</label>
+            <select class="form-select" [(ngModel)]="shipmentStatusModal.status">
+              @for (opt of shipmentStatusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Notes (optional)</label>
+            <textarea class="form-control" [(ngModel)]="shipmentStatusModal.notes" rows="2" maxlength="500"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeShipmentStatusModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveShipmentStatus()" [disabled]="savingShipmentStatus">
+            @if (savingShipmentStatus) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            Update
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Update Status Modal -->
+@if (statusModal.visible && order) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Update Status — {{ order.orderNumber }}</h5>
+          <button type="button" class="btn-close" (click)="closeStatusModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-3">
+            Current: <span class="badge" [ngClass]="statusBadgeClass(order.statusName)">{{ order.statusName }}</span>
+          </p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">New Status</label>
+            <select class="form-select" [(ngModel)]="statusModal.newStatus">
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="form-label fw-semibold">Notes (optional)</label>
+            <textarea class="form-control" [(ngModel)]="statusModal.notes" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeStatusModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveStatus()">Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

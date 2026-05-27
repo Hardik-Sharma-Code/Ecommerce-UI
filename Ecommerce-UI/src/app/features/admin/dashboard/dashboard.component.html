@@ -1,0 +1,155 @@
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h1 class="page-title">Admin Dashboard</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0"><li class="breadcrumb-item active">Dashboard</li></ol>
+      </nav>
+    </div>
+    <div class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ today | date:'fullDate' }}</div>
+  </div>
+</div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);"><i class="bi bi-people"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats?.totalUsers ?? 0 | number }}</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.8);">Total Users</div>
+        <div class="stat-change" style="color:rgba(255,255,255,.6);">{{ stats?.activeUsers ?? 0 }} active</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);"><i class="bi bi-shop"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats?.totalVendors ?? 0 }}</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.8);">Vendors</div>
+        <div class="stat-change" style="color:rgba(255,255,255,.6);">{{ stats?.pendingKyc ?? 0 }} KYC pending</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card" style="background:linear-gradient(135deg,#4facfe,#00f2fe);color:#fff;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);"><i class="bi bi-person-check"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats?.totalCustomers ?? 0 | number }}</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.8);">Customers</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card stat-card" style="background:linear-gradient(135deg,#43e97b,#38f9d7);color:#fff;">
+      <div class="stat-icon" style="background:rgba(255,255,255,.2);"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats?.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.8);">Total Revenue</div>
+        <div class="stat-change" style="color:rgba(255,255,255,.7);">
+          <i class="bi bi-arrow-up-short"></i>{{ stats?.monthlyGrowth }}% this month
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick actions + recent users -->
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-semibold mb-0"><i class="bi bi-lightning me-2 text-primary"></i>Quick Actions</h6>
+      </div>
+      <div class="list-group list-group-flush">
+        <a routerLink="/admin/users" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+          <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:38px;height:38px;flex-shrink:0;">
+            <i class="bi bi-people text-primary"></i>
+          </div>
+          <div>
+            <div class="fw-medium small">Manage Users</div>
+            <div class="text-muted" style="font-size:.75rem;">View and manage all users</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </a>
+        <a routerLink="/admin/vendors" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+          <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center" style="width:38px;height:38px;flex-shrink:0;">
+            <i class="bi bi-shop text-warning"></i>
+          </div>
+          <div>
+            <div class="fw-medium small">Manage Vendors</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ stats?.pendingKyc ?? 0 }} KYC pending approval</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </a>
+        <a routerLink="/admin/customers" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
+          <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center" style="width:38px;height:38px;flex-shrink:0;">
+            <i class="bi bi-person-check text-success"></i>
+          </div>
+          <div>
+            <div class="fw-medium small">Manage Customers</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ stats?.totalCustomers ?? 0 }} registered customers</div>
+          </div>
+          <i class="bi bi-chevron-right ms-auto text-muted"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3">
+        <h6 class="fw-semibold mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Overview</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="bg-light rounded p-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small mb-1">Active Users</div>
+                  <div class="fw-bold fs-5">{{ stats?.activeUsers ?? 0 | number }}</div>
+                </div>
+                <i class="bi bi-person-check-fill text-success fs-3"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="bg-light rounded p-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small mb-1">KYC Pending</div>
+                  <div class="fw-bold fs-5 text-warning">{{ stats?.pendingKyc ?? 0 }}</div>
+                </div>
+                <i class="bi bi-shield-exclamation text-warning fs-3"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="bg-light rounded p-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small mb-1">Monthly Growth</div>
+                  <div class="fw-bold fs-5 text-success">+{{ stats?.monthlyGrowth ?? 0 }}%</div>
+                </div>
+                <i class="bi bi-graph-up text-success fs-3"></i>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="bg-light rounded p-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small mb-1">Total Revenue</div>
+                  <div class="fw-bold fs-5">{{ stats?.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</div>
+                </div>
+                <i class="bi bi-cash-stack text-primary fs-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

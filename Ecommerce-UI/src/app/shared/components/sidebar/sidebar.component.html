@@ -1,0 +1,29 @@
+<nav class="sidebar">
+  <a class="sidebar-brand" href="#">
+    <i class="bi bi-shop brand-icon"></i>
+    <span>{{ roleLabel }}</span>
+  </a>
+
+  <div class="sidebar-menu">
+    <span class="menu-section-title">Navigation</span>
+    <ul class="nav flex-column">
+      @for (item of navItems; track item.route) {
+        <li class="nav-item">
+          <a class="nav-link"
+             [routerLink]="item.route"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: item.route.endsWith('dashboard') }">
+            <i class="bi {{ item.icon }}"></i>
+            <span>{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="text-muted" style="font-size:.7rem;">
+      <i class="bi bi-shield-check me-1"></i>ShopEase &copy; 2025
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,84 @@
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h1 class="page-title">My Profile</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a routerLink="/customer/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Profile</li>
+        </ol>
+      </nav>
+    </div>
+    <a routerLink="/customer/edit-profile" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil me-1"></i>Edit Profile
+    </a>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+} @else if (profile) {
+  <div class="row g-4">
+    <!-- Avatar card -->
+    <div class="col-lg-4">
+      <div class="card text-center p-4">
+        <div class="profile-avatar-large">{{ initials }}</div>
+        <h5 class="fw-semibold mb-1">{{ fullName }}</h5>
+        <p class="text-muted small mb-3">{{ profile.email }}</p>
+        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+          <i class="bi bi-check-circle me-1"></i>Active Account
+        </span>
+      </div>
+    </div>
+
+    <!-- Info card -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-semibold mb-0"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Personal Information</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">First Name</label>
+              <span class="fw-medium">{{ profile.firstName }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Last Name</label>
+              <span class="fw-medium">{{ profile.lastName }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Email Address</label>
+              <span class="fw-medium">{{ profile.email }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Phone Number</label>
+              <span class="fw-medium">{{ profile.phoneNumber ?? '—' }}</span>
+            </div>
+            <div class="col-12"><hr class="my-1"></div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Address</label>
+              <span class="fw-medium">{{ profile.address ?? '—' }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">City</label>
+              <span class="fw-medium">{{ profile.city ?? '—' }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">State</label>
+              <span class="fw-medium">{{ profile.state ?? '—' }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Postal Code</label>
+              <span class="fw-medium">{{ profile.postalCode ?? '—' }}</span>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-muted small d-block">Country</label>
+              <span class="fw-medium">{{ profile.country ?? '—' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

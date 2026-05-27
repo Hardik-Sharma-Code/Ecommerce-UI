@@ -1,0 +1,204 @@
+<h2 class="mb-4">Reports</h2>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <button class="nav-link" [class.active]="activeTab === 'sales'" (click)="activeTab = 'sales'">
+      <i class="bi bi-graph-up me-2"></i>Sales
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" [class.active]="activeTab === 'inventory'" (click)="activeTab = 'inventory'">
+      <i class="bi bi-boxes me-2"></i>Inventory
+    </button>
+  </li>
+</ul>
+
+<!-- SALES TAB -->
+@if (activeTab === 'sales') {
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold small">From Date</label>
+          <input type="date" class="form-control" [(ngModel)]="salesForm.fromDate">
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold small">To Date</label>
+          <input type="date" class="form-control" [(ngModel)]="salesForm.toDate">
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold small">Vendor ID (optional)</label>
+          <input type="text" class="form-control" [(ngModel)]="salesForm.vendorId"
+            placeholder="Leave empty for all vendors">
+        </div>
+        <div class="col-sm-3 d-flex gap-2">
+          <button class="btn btn-primary flex-grow-1" (click)="generateSalesReport()"
+            [disabled]="loadingSales || !salesForm.fromDate || !salesForm.toDate">
+            @if (loadingSales) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            Generate
+          </button>
+          @if (salesReport) {
+            <button class="btn btn-outline-secondary" (click)="exportSalesReport()" [disabled]="exportingSales"
+              title="Export CSV">
+              @if (exportingSales) { <span class="spinner-border spinner-border-sm"></span> }
+              @else { <i class="bi bi-download"></i> }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (salesReport) {
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Total Orders</div>
+            <div class="fw-bold fs-3">{{ salesReport.totalOrders }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Gross Revenue</div>
+            <div class="fw-bold fs-3 text-primary">{{ salesReport.totalRevenue | currency }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Net Revenue</div>
+            <div class="fw-bold fs-3 text-success">{{ salesReport.netRevenue | currency }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Discounts / Tax</div>
+            <div class="fw-bold fs-5">
+              <span class="text-danger">-{{ salesReport.totalDiscount | currency }}</span>
+              <span class="text-muted mx-1">/</span>
+              <span>{{ salesReport.totalTax | currency }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily breakdown -->
+    @if (salesReport.dailyBreakdown.length > 0) {
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent fw-semibold">Daily Breakdown</div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Orders</th>
+                <th>Revenue</th>
+                <th style="min-width:180px">Revenue Bar</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (day of salesReport.dailyBreakdown; track day.date) {
+                <tr>
+                  <td class="text-muted small">{{ day.date | date:'mediumDate' }}</td>
+                  <td>{{ day.orderCount }}</td>
+                  <td class="fw-semibold">{{ day.revenue | currency }}</td>
+                  <td>
+                    <div class="progress" style="height:8px">
+                      <div class="progress-bar bg-primary"
+                        [style.width.%]="(day.revenue / maxDailyRevenue) * 100"></div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+}
+
+<!-- INVENTORY TAB -->
+@if (activeTab === 'inventory') {
+  <div class="d-flex gap-2 mb-4">
+    <button class="btn btn-primary" (click)="loadInventoryReport()" [disabled]="loadingInventory">
+      @if (loadingInventory) { <span class="spinner-border spinner-border-sm me-2"></span> }
+      <i class="bi bi-arrow-clockwise me-2"></i>Load Report
+    </button>
+    @if (inventoryReport) {
+      <button class="btn btn-outline-secondary" (click)="exportInventoryReport()" [disabled]="exportingInventory">
+        @if (exportingInventory) { <span class="spinner-border spinner-border-sm me-2"></span> }
+        @else { <i class="bi bi-download me-2"></i> }
+        Export CSV
+      </button>
+    }
+  </div>
+
+  @if (inventoryReport) {
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fw-bold fs-3">{{ inventoryReport.totalProducts }}</div>
+          <div class="text-muted small">Total Products</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fw-bold fs-3 text-success">{{ inventoryReport.inStockProducts }}</div>
+          <div class="text-muted small">In Stock</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fw-bold fs-3 text-warning">{{ inventoryReport.lowStockProducts }}</div>
+          <div class="text-muted small">Low Stock</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fw-bold fs-3 text-danger">{{ inventoryReport.outOfStockProducts }}</div>
+          <div class="text-muted small">Out of Stock</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items table -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-transparent fw-semibold">Inventory Items ({{ inventoryReport.items.length }})</div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Stock</th>
+              <th>Price</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of inventoryReport.items; track item.productId) {
+              <tr>
+                <td class="fw-semibold small">{{ item.productName }}</td>
+                <td class="font-monospace small text-muted">{{ item.sku }}</td>
+                <td>{{ item.stockQuantity }}</td>
+                <td>{{ item.price | currency }}</td>
+                <td><span class="badge" [class]="stockBadgeClass(item.status)">{{ item.status }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+}

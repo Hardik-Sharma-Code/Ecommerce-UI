@@ -1,0 +1,184 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">My Products</h2>
+    <p class="text-muted mb-0">{{ total }} product{{ total !== 1 ? 's' : '' }}</p>
+  </div>
+  <a routerLink="create" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Add Product
+  </a>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else {
+  @if (products.length === 0) {
+    <div class="card border-0 shadow-sm text-center py-5">
+      <i class="bi bi-box-seam display-4 text-muted mb-3"></i>
+      <h5 class="text-muted">No products yet</h5>
+      <p class="text-muted mb-3">Start by adding your first product.</p>
+      <a routerLink="create" class="btn btn-primary mx-auto" style="width:fit-content">Add Product</a>
+    </div>
+  } @else {
+    <div class="card border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Featured</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (product of products; track product.id) {
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    @if (product.imageUrl) {
+                      <img [src]="product.imageUrl" class="rounded" width="40" height="40" style="object-fit:cover">
+                    } @else {
+                      <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width:40px;height:40px">
+                        <i class="bi bi-image text-muted"></i>
+                      </div>
+                    }
+                    <div>
+                      <div class="fw-semibold">{{ product.name }}</div>
+                      <small class="text-muted">{{ product.sku ?? product.slug }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ product.categoryName ?? '—' }}</span></td>
+                <td>
+                  <span class="fw-semibold">{{ product.price | currency }}</span>
+                  @if (product.discountedPrice) {
+                    <br><small class="text-success">{{ product.discountedPrice | currency }}</small>
+                  }
+                </td>
+                <td>
+                  <span class="fw-semibold"
+                    [class.text-danger]="product.stockQuantity === 0"
+                    [class.text-warning]="product.stockQuantity > 0 && product.stockQuantity <= 5"
+                    [class.text-success]="product.stockQuantity > 5">
+                    {{ product.stockQuantity }}
+                  </span>
+                  @if (product.stockQuantity === 0) {
+                    <span class="badge bg-danger ms-1">Out</span>
+                  } @else if (product.stockQuantity <= 5) {
+                    <span class="badge bg-warning text-dark ms-1">Low</span>
+                  }
+                </td>
+                <td>
+                  <span class="badge" [class.bg-success]="product.isActive" [class.bg-secondary]="!product.isActive">
+                    {{ product.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  @if (product.isFeatured) {
+                    <i class="bi bi-star-fill text-warning"></i>
+                  } @else {
+                    <i class="bi bi-star text-muted"></i>
+                  }
+                </td>
+                <td class="text-end">
+                  <a [routerLink]="[product.id, 'edit']" class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button class="btn btn-sm btn-outline-info me-1" (click)="openStockModal(product)" title="Update Stock">
+                    <i class="bi bi-boxes"></i>
+                  </button>
+                  <button class="btn btn-sm me-1"
+                    [class.btn-outline-warning]="product.isActive"
+                    [class.btn-outline-success]="!product.isActive"
+                    (click)="toggleActive(product)"
+                    [title]="product.isActive ? 'Deactivate' : 'Activate'">
+                    <i class="bi" [class.bi-toggle-on]="product.isActive" [class.bi-toggle-off]="!product.isActive"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(product)" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center mb-0">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button class="page-link" (click)="onPageChange(currentPage - 1)">Previous</button>
+          </li>
+          @for (page of pages; track page) {
+            <li class="page-item" [class.active]="page === currentPage">
+              <button class="page-link" (click)="onPageChange(page)">{{ page }}</button>
+            </li>
+          }
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button class="page-link" (click)="onPageChange(currentPage + 1)">Next</button>
+          </li>
+        </ul>
+      </nav>
+    }
+  }
+}
+
+<!-- Stock Update Modal -->
+@if (stockModal.visible && stockModal.product) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Update Stock</h5>
+          <button type="button" class="btn-close" (click)="closeStockModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-3">{{ stockModal.product.name }}</p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Operation</label>
+            <select class="form-select" [(ngModel)]="stockModal.operation">
+              <option value="set">Set to</option>
+              <option value="add">Add</option>
+              <option value="subtract">Subtract</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Quantity</label>
+            <input type="number" class="form-control" [(ngModel)]="stockModal.quantity" min="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="closeStockModal()">Cancel</button>
+          <button class="btn btn-primary btn-sm" (click)="saveStock()">Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation -->
+@if (showDeleteConfirm && deleteTarget) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-danger">Delete Product</h5>
+          <button type="button" class="btn-close" (click)="cancelDelete()"></button>
+        </div>
+        <div class="modal-body">
+          Delete <strong>{{ deleteTarget.name }}</strong>? This cannot be undone.
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="cancelDelete()">Cancel</button>
+          <button class="btn btn-danger btn-sm" (click)="doDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

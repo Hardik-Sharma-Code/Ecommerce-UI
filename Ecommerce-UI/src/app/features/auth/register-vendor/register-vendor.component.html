@@ -1,0 +1,119 @@
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width:560px;">
+    <div class="auth-logo">
+      <div class="logo-text"><i class="bi bi-shop-window"></i>ShopEase</div>
+    </div>
+
+    <h2 class="auth-title">Create Vendor Account</h2>
+    <p class="auth-subtitle">Start selling on ShopEase. KYC verification required after registration.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.7rem;letter-spacing:.08em;">Personal Details</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label fw-medium small">First Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="firstName"
+                 [class.is-invalid]="firstName.invalid && firstName.touched">
+          @if (firstName.invalid && firstName.touched) {
+            <div class="invalid-feedback">First name is required.</div>
+          }
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-medium small">Last Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="lastName"
+                 [class.is-invalid]="lastName.invalid && lastName.touched">
+          @if (lastName.invalid && lastName.touched) {
+            <div class="invalid-feedback">Last name is required.</div>
+          }
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium small">Email Address <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+          <input type="email" class="form-control border-start-0" formControlName="email" placeholder="you@business.com"
+                 [class.is-invalid]="email.invalid && email.touched">
+          @if (email.invalid && email.touched) {
+            <div class="invalid-feedback">
+              @if (email.errors?.['required']) { Email is required. }
+              @else { Enter a valid email address. }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <label class="form-label fw-medium small">Password <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <input [type]="showPassword ? 'text' : 'password'" class="form-control border-end-0"
+                   formControlName="password" placeholder="Min. 6 chars"
+                   [class.is-invalid]="password.invalid && password.touched">
+            <button type="button" class="input-group-text bg-light cursor-pointer" (click)="showPassword = !showPassword">
+              <i class="bi text-muted" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+            </button>
+            @if (password.invalid && password.touched) {
+              <div class="invalid-feedback">Min. 6 characters.</div>
+            }
+          </div>
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-medium small">Confirm Password <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <input [type]="showConfirm ? 'text' : 'password'" class="form-control border-end-0"
+                   formControlName="confirmPassword" placeholder="Re-enter"
+                   [class.is-invalid]="(confirmPassword.invalid || form.errors?.['mismatch']) && confirmPassword.touched">
+            <button type="button" class="input-group-text bg-light cursor-pointer" (click)="showConfirm = !showConfirm">
+              <i class="bi text-muted" [class.bi-eye]="!showConfirm" [class.bi-eye-slash]="showConfirm"></i>
+            </button>
+            @if (confirmPassword.touched && form.errors?.['mismatch']) {
+              <div class="invalid-feedback d-block">Passwords do not match.</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.7rem;letter-spacing:.08em;">Business Details</h6>
+      <div class="mb-3">
+        <label class="form-label fw-medium small">Business Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" formControlName="businessName"
+               [class.is-invalid]="businessName.invalid && businessName.touched">
+        @if (businessName.invalid && businessName.touched) {
+          <div class="invalid-feedback">Business name is required.</div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium small">Business Phone</label>
+        <input type="tel" class="form-control" formControlName="businessPhone" placeholder="+1 000 000 0000">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium small">Business Description</label>
+        <textarea class="form-control" rows="2" formControlName="businessDescription"
+                  placeholder="Briefly describe your business..."></textarea>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-medium small">Business Address</label>
+        <input type="text" class="form-control" formControlName="businessAddress" placeholder="Street, City, State">
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" [disabled]="loading">
+        @if (loading) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>Creating Account...
+        } @else {
+          <i class="bi bi-shop me-2"></i>Create Vendor Account
+        }
+      </button>
+    </form>
+
+    <div class="text-center mt-4 small">
+      Already have an account? <a [routerLink]="['/auth/login']">Sign In</a>
+    </div>
+    <div class="text-center mt-2 small">
+      Register as a customer? <a [routerLink]="['/auth/register-customer']">Customer Sign Up</a>
+    </div>
+  </div>
+</div>

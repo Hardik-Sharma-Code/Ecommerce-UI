@@ -1,0 +1,82 @@
+<div class="page-header">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h1 class="page-title">Edit Vendor Profile</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a routerLink="/vendor/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item"><a routerLink="/vendor/profile">Profile</a></li>
+          <li class="breadcrumb-item active">Edit</li>
+        </ol>
+      </nav>
+    </div>
+    <a routerLink="/vendor/profile" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+  </div>
+</div>
+
+@if (initialLoading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+} @else {
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="card">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-semibold mb-0"><i class="bi bi-shop me-2 text-primary"></i>Update Business Information</h6>
+        </div>
+        <div class="card-body p-4">
+          <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+            <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.7rem;letter-spacing:.08em;">Personal Details</h6>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-medium small">First Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="firstName"
+                       [class.is-invalid]="firstName.invalid && firstName.touched">
+                @if (firstName.invalid && firstName.touched) { <div class="invalid-feedback">First name is required.</div> }
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-medium small">Last Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="lastName"
+                       [class.is-invalid]="lastName.invalid && lastName.touched">
+                @if (lastName.invalid && lastName.touched) { <div class="invalid-feedback">Last name is required.</div> }
+              </div>
+            </div>
+
+            <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.7rem;letter-spacing:.08em;">Business Details</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-medium small">Business Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="businessName"
+                       [class.is-invalid]="businessName.invalid && businessName.touched">
+                @if (businessName.invalid && businessName.touched) { <div class="invalid-feedback">Business name is required.</div> }
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-medium small">Business Phone</label>
+                <input type="tel" class="form-control" formControlName="businessPhone" placeholder="+1 000 000 0000">
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-medium small">Business Description</label>
+                <textarea class="form-control" rows="3" formControlName="businessDescription"
+                          placeholder="Describe your business..."></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-medium small">Business Address</label>
+                <textarea class="form-control" rows="2" formControlName="businessAddress"></textarea>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+              <a routerLink="/vendor/profile" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary" [disabled]="loading">
+                @if (loading) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>Saving...
+                } @else {
+                  <i class="bi bi-check-lg me-2"></i>Save Changes
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

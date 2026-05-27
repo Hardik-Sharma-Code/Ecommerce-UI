@@ -1,0 +1,113 @@
+export const API_BASE_URL = 'http://localhost:63912/api';
+
+export const API_ENDPOINTS = {
+  auth: {
+    login: `${API_BASE_URL}/Auth/login`,
+    logout: `${API_BASE_URL}/auth/logout`,
+    refreshToken: `${API_BASE_URL}/auth/refresh-token`,
+    forgotPassword: `${API_BASE_URL}/auth/forgot-password`,
+    resetPassword: `${API_BASE_URL}/auth/reset-password`,
+    changePassword: `${API_BASE_URL}/auth/change-password`,
+  },
+  admin: {
+    users: `${API_BASE_URL}/admin/users`,
+    vendors: `${API_BASE_URL}/admin/vendors`,
+    customers: `${API_BASE_URL}/admin/customers`,
+  },
+  vendor: {
+    register: `${API_BASE_URL}/vendor/register`,
+    profile: `${API_BASE_URL}/vendor/profile`,
+    kycSubmit: `${API_BASE_URL}/vendor/kyc/submit`,
+    kycStatus: `${API_BASE_URL}/vendor/kyc/status`,
+  },
+  customer: {
+    register: `${API_BASE_URL}/customer/register`,
+    profile: `${API_BASE_URL}/customer/profile`,
+  },
+  categories: {
+    list: `${API_BASE_URL}/categories`,
+    tree: `${API_BASE_URL}/categories/tree`,
+    byId: (id: string) => `${API_BASE_URL}/categories/${id}`,
+    bySlug: (slug: string) => `${API_BASE_URL}/categories/slug/${slug}`,
+    subcategories: (id: string) => `${API_BASE_URL}/categories/${id}/subcategories`,
+  },
+  products: {
+    list: `${API_BASE_URL}/products`,
+    byId: (id: string) => `${API_BASE_URL}/products/${id}`,
+    bySlug: (slug: string) => `${API_BASE_URL}/products/slug/${slug}`,
+    byCategory: (categoryId: string) => `${API_BASE_URL}/products/category/${categoryId}`,
+    byVendor: (vendorId: string) => `${API_BASE_URL}/products/vendor/${vendorId}`,
+    stock: (id: string) => `${API_BASE_URL}/products/${id}/stock`,
+    toggleActive: (id: string) => `${API_BASE_URL}/products/${id}/toggle-active`,
+  },
+  search: {
+    products: `${API_BASE_URL}/search/products`,
+    suggestions: `${API_BASE_URL}/search/suggestions`,
+  },
+  address: {
+    list: `${API_BASE_URL}/address`,
+    byId: (id: number) => `${API_BASE_URL}/address/${id}`,
+    setDefault: (id: number) => `${API_BASE_URL}/address/${id}/default`,
+  },
+  cart: {
+    base: `${API_BASE_URL}/cart`,
+    count: `${API_BASE_URL}/cart/count`,
+    items: `${API_BASE_URL}/cart/items`,
+    item: (itemId: number) => `${API_BASE_URL}/cart/items/${itemId}`,
+  },
+  payment: {
+    initiate: `${API_BASE_URL}/payment/initiate`,
+    verifyRazorpay: `${API_BASE_URL}/payment/verify/razorpay`,
+    verifyStripe: `${API_BASE_URL}/payment/verify/stripe`,
+    byOrder: (orderId: number) => `${API_BASE_URL}/payment/order/${orderId}`,
+  },
+  order: {
+    my: `${API_BASE_URL}/order`,
+    all: `${API_BASE_URL}/order/all`,
+    byId: (id: number) => `${API_BASE_URL}/order/${id}`,
+    cancel: (id: number) => `${API_BASE_URL}/order/${id}/cancel`,
+    status: (id: number) => `${API_BASE_URL}/order/${id}/status`,
+  },
+  wishlist: {
+    base: `${API_BASE_URL}/wishlist`,
+    items: `${API_BASE_URL}/wishlist/items`,
+    item: (itemId: number) => `${API_BASE_URL}/wishlist/items/${itemId}`,
+    check: (productId: number) => `${API_BASE_URL}/wishlist/check/${productId}`,
+    moveToCart: (itemId: number) => `${API_BASE_URL}/wishlist/items/${itemId}/move-to-cart`,
+  },
+  shipping: {
+    rates: `${API_BASE_URL}/shipping/rates`,
+    tracking: (orderId: number) => `${API_BASE_URL}/shipping/${orderId}/tracking`,
+    status: (orderId: number) => `${API_BASE_URL}/shipping/${orderId}/status`,
+  },
+  reviews: {
+    byProduct: (productId: number) => `${API_BASE_URL}/reviews/product/${productId}`,
+    summaryByProduct: (productId: number) => `${API_BASE_URL}/reviews/product/${productId}/summary`,
+    byId: (id: number) => `${API_BASE_URL}/reviews/${id}`,
+    my: `${API_BASE_URL}/reviews/my`,
+    create: `${API_BASE_URL}/reviews`,
+    update: (id: number) => `${API_BASE_URL}/reviews/${id}`,
+    delete: (id: number) => `${API_BASE_URL}/reviews/${id}`,
+    all: `${API_BASE_URL}/reviews/all`,
+    approve: (id: number) => `${API_BASE_URL}/reviews/${id}/approve`,
+  },
+  reports: {
+    sales: `${API_BASE_URL}/reports/sales`,
+    inventory: `${API_BASE_URL}/reports/inventory`,
+    exportSales: `${API_BASE_URL}/reports/sales/export`,
+    exportInventory: `${API_BASE_URL}/reports/inventory/export`,
+  },
+  coupon: {
+    base: `${API_BASE_URL}/coupon`,
+    validate: `${API_BASE_URL}/coupon/validate`,
+    byCode: (code: string) => `${API_BASE_URL}/coupon/${code}`,
+    byId: (id: number) => `${API_BASE_URL}/coupon/${id}`,
+  },
+  refund: {
+    request: `${API_BASE_URL}/refund/request`,
+    mine: `${API_BASE_URL}/refund/mine`,
+    all: `${API_BASE_URL}/refund`,
+    byId: (id: number) => `${API_BASE_URL}/refund/${id}`,
+    process: (id: number) => `${API_BASE_URL}/refund/${id}/process`,
+  },
+};

@@ -1,0 +1,105 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">My Orders</h2>
+    <p class="text-muted mb-0">{{ total }} order{{ total !== 1 ? 's' : '' }}</p>
+  </div>
+  <a routerLink="/customer/browse" class="btn btn-outline-primary btn-sm">
+    <i class="bi bi-search me-1"></i> Continue Shopping
+  </a>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (orders.length === 0) {
+  <div class="card border-0 shadow-sm text-center py-5">
+    <i class="bi bi-bag display-3 text-muted mb-3"></i>
+    <h4 class="text-muted">No orders yet</h4>
+    <p class="text-muted mb-4">Start shopping to place your first order.</p>
+    <a routerLink="/customer/browse" class="btn btn-primary mx-auto" style="width:fit-content">
+      <i class="bi bi-search me-1"></i> Browse Products
+    </a>
+  </div>
+} @else {
+  <div class="d-flex flex-column gap-3">
+    @for (order of orders; track order.id) {
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <!-- Header row -->
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+            <div>
+              <span class="fw-bold fs-6">{{ order.orderNumber }}</span>
+              <small class="text-muted ms-2">{{ order.placedAt | date:'mediumDate' }}</small>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+              <span class="badge" [ngClass]="statusBadgeClass(order.statusName)">{{ order.statusName }}</span>
+              <span class="badge" [ngClass]="paymentBadgeClass(order.paymentStatusName)">{{ order.paymentStatusName }}</span>
+            </div>
+          </div>
+
+          <!-- Meta row -->
+          <div class="d-flex flex-wrap gap-4 text-muted small mb-3">
+            <span><i class="bi bi-box-seam me-1"></i>{{ order.itemCount }} item{{ order.itemCount !== 1 ? 's' : '' }}</span>
+            <span class="fw-semibold text-dark fs-6">{{ order.totalAmount | currency }}</span>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex gap-2">
+            <a [routerLink]="['/customer/orders', order.id]" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye me-1"></i> View Details
+            </a>
+            @if (canCancel(order)) {
+              <button class="btn btn-sm btn-outline-danger" (click)="openCancelModal(order)">
+                <i class="bi bi-x-circle me-1"></i> Cancel
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (totalPages > 1) {
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center mb-0">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button class="page-link" (click)="onPageChange(currentPage - 1)">Previous</button>
+        </li>
+        @for (page of pages; track page) {
+          <li class="page-item" [class.active]="page === currentPage">
+            <button class="page-link" (click)="onPageChange(page)">{{ page }}</button>
+          </li>
+        }
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button class="page-link" (click)="onPageChange(currentPage + 1)">Next</button>
+        </li>
+      </ul>
+    </nav>
+  }
+}
+
+<!-- Cancel Modal -->
+@if (cancelModal.visible) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Cancel Order</h5>
+          <button type="button" class="btn-close" (click)="closeCancelModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-3">Cancel order <strong>{{ cancelModal.orderNumber }}</strong>?</p>
+          <div class="mb-0">
+            <label class="form-label fw-semibold">Reason (optional)</label>
+            <textarea class="form-control" [(ngModel)]="cancelModal.reason" rows="3"
+              placeholder="Let us know why you're cancelling..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeCancelModal()">Keep Order</button>
+          <button class="btn btn-danger" (click)="confirmCancel()">Yes, Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

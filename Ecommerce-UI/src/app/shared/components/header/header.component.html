@@ -1,0 +1,44 @@
+<header class="top-header">
+  <span class="header-title">
+    <i class="bi bi-shop me-2 text-primary"></i>ShopEase
+  </span>
+
+  <div class="header-actions">
+    @if (role === UserRole.Customer) {
+      <a routerLink="/customer/cart" class="btn-icon position-relative" title="Cart">
+        <i class="bi bi-cart3"></i>
+        @if (cartService.cartCount$ | async; as count) {
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:.6rem">
+            {{ count }}
+          </span>
+        }
+      </a>
+    }
+    <button class="btn-icon" title="Notifications">
+      <i class="bi bi-bell"></i>
+    </button>
+
+    <div class="dropdown">
+      <div class="avatar" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+        {{ userInitials }}
+      </div>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:200px;">
+        <li class="px-3 py-2 border-bottom">
+          <div class="fw-semibold small">{{ userName }}</div>
+          <div class="text-muted" style="font-size:.75rem;">{{ userEmail }}</div>
+        </li>
+        <li>
+          <a class="dropdown-item small" [routerLink]="changePasswordRoute">
+            <i class="bi bi-key me-2"></i>Change Password
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li>
+          <button class="dropdown-item small text-danger" (click)="logout()">
+            <i class="bi bi-box-arrow-right me-2"></i>Logout
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>

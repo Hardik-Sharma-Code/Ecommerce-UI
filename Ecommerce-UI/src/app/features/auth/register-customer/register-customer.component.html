@@ -1,0 +1,100 @@
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width:520px;">
+    <div class="auth-logo">
+      <div class="logo-text"><i class="bi bi-shop-window"></i>ShopEase</div>
+    </div>
+
+    <h2 class="auth-title">Create Customer Account</h2>
+    <p class="auth-subtitle">Start shopping on ShopEase today.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label fw-medium small">First Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="firstName"
+                 [class.is-invalid]="firstName.invalid && firstName.touched">
+          @if (firstName.invalid && firstName.touched) {
+            <div class="invalid-feedback">First name is required.</div>
+          }
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-medium small">Last Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="lastName"
+                 [class.is-invalid]="lastName.invalid && lastName.touched">
+          @if (lastName.invalid && lastName.touched) {
+            <div class="invalid-feedback">Last name is required.</div>
+          }
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium small">Email Address <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+          <input type="email" class="form-control border-start-0" formControlName="email" placeholder="you@example.com"
+                 [class.is-invalid]="email.invalid && email.touched">
+          @if (email.invalid && email.touched) {
+            <div class="invalid-feedback">
+              @if (email.errors?.['required']) { Email is required. }
+              @else { Enter a valid email address. }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium small">Phone Number</label>
+        <input type="tel" class="form-control" formControlName="phoneNumber" placeholder="+1 000 000 0000">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-medium small">Password <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+          <input [type]="showPassword ? 'text' : 'password'" class="form-control border-start-0 border-end-0"
+                 formControlName="password" placeholder="Min. 6 characters"
+                 [class.is-invalid]="password.invalid && password.touched">
+          <button type="button" class="input-group-text bg-light border-start-0 cursor-pointer"
+                  (click)="showPassword = !showPassword">
+            <i class="bi text-muted" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+          </button>
+          @if (password.invalid && password.touched) {
+            <div class="invalid-feedback">Password must be at least 6 characters.</div>
+          }
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-medium small">Confirm Password <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock-fill text-muted"></i></span>
+          <input [type]="showConfirm ? 'text' : 'password'" class="form-control border-start-0 border-end-0"
+                 formControlName="confirmPassword" placeholder="Re-enter password"
+                 [class.is-invalid]="(confirmPassword.invalid || form.errors?.['mismatch']) && confirmPassword.touched">
+          <button type="button" class="input-group-text bg-light border-start-0 cursor-pointer"
+                  (click)="showConfirm = !showConfirm">
+            <i class="bi text-muted" [class.bi-eye]="!showConfirm" [class.bi-eye-slash]="showConfirm"></i>
+          </button>
+          @if (confirmPassword.touched && form.errors?.['mismatch']) {
+            <div class="invalid-feedback d-block">Passwords do not match.</div>
+          }
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" [disabled]="loading">
+        @if (loading) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>Creating Account...
+        } @else {
+          <i class="bi bi-person-plus me-2"></i>Create Account
+        }
+      </button>
+    </form>
+
+    <div class="text-center mt-4 small">
+      Already have an account? <a [routerLink]="['/auth/login']">Sign In</a>
+    </div>
+    <div class="text-center mt-2 small">
+      Register as a vendor? <a [routerLink]="['/auth/register-vendor']">Vendor Sign Up</a>
+    </div>
+  </div>
+</div>

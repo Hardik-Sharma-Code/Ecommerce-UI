@@ -1,0 +1,209 @@
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a routerLink="/customer/cart" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i> Back to Cart
+  </a>
+  <h2 class="mb-0">Checkout</h2>
+</div>
+
+@if (cart && cart.items.length === 0) {
+  <div class="alert alert-warning">
+    Your cart is empty. <a routerLink="/customer/browse">Browse products</a> to add items.
+  </div>
+} @else {
+  <div class="row g-4 align-items-start">
+
+    <!-- Left: address + shipping -->
+    <div class="col-lg-7">
+
+      <!-- Shipping address -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-geo-alt me-2"></i>Shipping Address</span>
+          <a routerLink="/customer/addresses" class="btn btn-link btn-sm p-0">Manage</a>
+        </div>
+        <div class="card-body">
+          @if (loadingAddresses) {
+            <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>
+          } @else if (addresses.length === 0) {
+            <div class="text-center py-2">
+              <p class="text-muted mb-2">No saved addresses.</p>
+              <a routerLink="/customer/addresses" class="btn btn-sm btn-outline-primary">Add Address</a>
+            </div>
+          } @else {
+            <div class="d-flex flex-column gap-2">
+              @for (address of addresses; track address.id) {
+                <label class="d-flex gap-3 align-items-start p-3 rounded border cursor-pointer"
+                  [class.border-primary]="selectedAddressId === address.id"
+                  [class.bg-primary-subtle]="selectedAddressId === address.id"
+                  style="cursor:pointer">
+                  <input type="radio" class="form-check-input mt-1 flex-shrink-0"
+                    [value]="address.id" [(ngModel)]="selectedAddressId" (change)="onAddressChange()">
+                  <div>
+                    <div class="fw-semibold">
+                      {{ address.label }}
+                      @if (address.isDefault) { <span class="badge bg-success ms-1 small">Default</span> }
+                    </div>
+                    <div class="text-muted small">{{ address.firstName }} {{ address.lastName }}</div>
+                    <div class="text-muted small">{{ address.addressLine1 }}, {{ address.city }}, {{ address.state }} {{ address.postalCode }}</div>
+                    @if (address.phoneNumber) { <div class="text-muted small">{{ address.phoneNumber }}</div> }
+                  </div>
+                </label>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Shipping method -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-truck me-2"></i>Shipping Method</span>
+          @if (loadingRates) {
+            <span class="spinner-border spinner-border-sm text-primary"></span>
+          }
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-column gap-2">
+            @for (opt of shippingOptions; track opt.id) {
+              <label class="d-flex justify-content-between align-items-center p-3 rounded border"
+                [class.border-primary]="selectedShipping === opt.id"
+                [class.bg-primary-subtle]="selectedShipping === opt.id"
+                style="cursor:pointer">
+                <div class="d-flex gap-3 align-items-center">
+                  <input type="radio" class="form-check-input" [value]="opt.id" [(ngModel)]="selectedShipping">
+                  <div>
+                    <div class="fw-semibold">{{ opt.label }}</div>
+                    <div class="d-flex gap-2 align-items-center">
+                      @if (opt.carrier) { <small class="text-muted">{{ opt.carrier }}</small><span class="text-muted small">·</span> }
+                      <small class="text-muted">{{ opt.days }}</small>
+                    </div>
+                    @if (opt.description) { <small class="text-muted fst-italic">{{ opt.description }}</small> }
+                  </div>
+                </div>
+                <span class="fw-semibold" [class.text-success]="opt.price === 0">
+                  {{ opt.price === 0 ? 'Free' : (opt.price | currency) }}
+                </span>
+              </label>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Coupon + Notes -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent fw-semibold">Additional Details</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Coupon Code</label>
+            @if (!appliedCoupon) {
+              <div class="input-group">
+                <input type="text" class="form-control" [(ngModel)]="couponCode"
+                  placeholder="Enter coupon code" style="text-transform:uppercase"
+                  [disabled]="couponLoading" (keyup.enter)="applyCoupon()">
+                <button class="btn btn-outline-secondary" type="button"
+                  (click)="applyCoupon()" [disabled]="couponLoading || !couponCode.trim()">
+                  @if (couponLoading) { <span class="spinner-border spinner-border-sm"></span> }
+                  @else { Apply }
+                </button>
+              </div>
+              @if (couponError) {
+                <div class="text-danger small mt-1">
+                  <i class="bi bi-exclamation-circle me-1"></i>{{ couponError }}
+                </div>
+              }
+            } @else {
+              <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-success-subtle rounded border border-success-subtle">
+                <div>
+                  <i class="bi bi-tag-fill text-success me-2"></i>
+                  <span class="font-monospace fw-semibold text-success">{{ couponCode }}</span>
+                  <span class="text-muted small ms-2">−{{ appliedCoupon.discountAmount | currency }}</span>
+                </div>
+                <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" (click)="removeCoupon()">
+                  <i class="bi bi-x-lg"></i> Remove
+                </button>
+              </div>
+            }
+          </div>
+          <div class="mb-0">
+            <label class="form-label fw-semibold">Order Notes</label>
+            <textarea class="form-control" [(ngModel)]="notes" rows="2"
+              placeholder="Special instructions, gift message, etc."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: order summary -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm sticky-top" style="top:1.5rem">
+        <div class="card-header bg-transparent fw-semibold">Order Summary</div>
+
+        @if (loadingCart) {
+          <div class="card-body text-center"><div class="spinner-border spinner-border-sm"></div></div>
+        } @else if (cart) {
+          <!-- Items -->
+          <div class="list-group list-group-flush">
+            @for (item of cart.items; track item.itemId) {
+              <div class="list-group-item px-4 py-2">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                  <div class="d-flex align-items-center gap-2 min-w-0">
+                    @if (item.primaryImageUrl) {
+                      <img [src]="item.primaryImageUrl" class="rounded flex-shrink-0" width="40" height="40" style="object-fit:cover">
+                    } @else {
+                      <div class="rounded bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px">
+                        <i class="bi bi-image text-muted small"></i>
+                      </div>
+                    }
+                    <div class="min-w-0">
+                      <div class="text-truncate small fw-semibold">{{ item.productName }}</div>
+                      <small class="text-muted">× {{ item.quantity }}</small>
+                    </div>
+                  </div>
+                  <span class="small fw-semibold flex-shrink-0">{{ item.subtotal | currency }}</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Totals -->
+          <div class="card-body border-top">
+            <div class="d-flex justify-content-between mb-2 small">
+              <span class="text-muted">Subtotal</span>
+              <span>{{ cartSubtotal | currency }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 small">
+              <span class="text-muted">Shipping ({{ selectedShippingOption.label }})</span>
+              <span [class.text-success]="shippingCost === 0">
+                {{ shippingCost === 0 ? 'Free' : (shippingCost | currency) }}
+              </span>
+            </div>
+            @if (appliedCoupon) {
+              <div class="d-flex justify-content-between mb-2 small text-success">
+                <span><i class="bi bi-tag me-1"></i>Coupon ({{ couponCode }})</span>
+                <span>−{{ appliedCoupon.discountAmount | currency }}</span>
+              </div>
+            }
+            <hr class="my-2">
+            <div class="d-flex justify-content-between fw-bold">
+              <span>Total</span>
+              <span class="text-primary fs-5">{{ orderTotal | currency }}</span>
+            </div>
+          </div>
+
+          <div class="card-body pt-0">
+            <button class="btn btn-primary w-100 py-2" (click)="placeOrder()"
+              [disabled]="placing || !canPlace">
+              @if (placing) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              <i class="bi bi-lock me-1"></i>
+              Place Order · {{ orderTotal | currency }}
+            </button>
+            @if (!selectedAddressId) {
+              <div class="text-danger small text-center mt-2">Please select a shipping address.</div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+}

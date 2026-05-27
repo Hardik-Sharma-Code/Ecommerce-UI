@@ -1,0 +1,184 @@
+<div class="mb-4">
+  <h2 class="mb-0">Shopping Cart</h2>
+  @if (cart && cart.itemCount > 0) {
+    <p class="text-muted mb-0">{{ cart.itemCount }} item{{ cart.itemCount !== 1 ? 's' : '' }}</p>
+  }
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (!cart || cart.items.length === 0) {
+
+  <!-- Empty state -->
+  <div class="card border-0 shadow-sm text-center py-5">
+    <i class="bi bi-cart3 display-3 text-muted mb-3"></i>
+    <h4 class="text-muted">Your cart is empty</h4>
+    <p class="text-muted mb-4">Looks like you haven't added anything yet.</p>
+    <a routerLink="/customer/browse" class="btn btn-primary mx-auto" style="width:fit-content">
+      <i class="bi bi-search me-1"></i> Browse Products
+    </a>
+  </div>
+
+} @else {
+  <div class="row g-4 align-items-start">
+
+    <!-- Cart items -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="list-group list-group-flush">
+          @for (item of cart.items; track item.itemId) {
+            <div class="list-group-item px-4 py-3"
+              [class.opacity-50]="updatingItemId === item.itemId">
+
+              <div class="d-flex gap-3 align-items-start">
+
+                <!-- Image -->
+                <div class="flex-shrink-0">
+                  @if (item.primaryImageUrl) {
+                    <img [src]="item.primaryImageUrl" class="rounded" width="80" height="80" style="object-fit:cover" [alt]="item.productName">
+                  } @else {
+                    <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width:80px;height:80px">
+                      <i class="bi bi-image text-muted fs-4"></i>
+                    </div>
+                  }
+                </div>
+
+                <!-- Details -->
+                <div class="flex-grow-1 min-width-0">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                      <h6 class="mb-1 fw-semibold">{{ item.productName }}</h6>
+                      @if (!item.isInStock) {
+                        <span class="badge bg-danger mb-1">Out of Stock</span>
+                      } @else if (item.stockQuantity <= 5) {
+                        <span class="badge bg-warning text-dark mb-1">Only {{ item.stockQuantity }} left</span>
+                      }
+
+                      <!-- Price -->
+                      <div class="d-flex align-items-baseline gap-2 mt-1">
+                        <span class="fw-semibold text-primary">{{ item.price | currency }}</span>
+                        @if (item.compareAtPrice) {
+                          <span class="text-muted text-decoration-line-through small">{{ item.compareAtPrice | currency }}</span>
+                          <span class="badge bg-danger small">-{{ getDiscountPercent(item) }}%</span>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Remove button -->
+                    <button class="btn btn-sm btn-outline-danger flex-shrink-0"
+                      (click)="remove(item)"
+                      [disabled]="updatingItemId === item.itemId"
+                      title="Remove">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+
+                  <!-- Quantity + subtotal row -->
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <!-- Quantity stepper -->
+                    <div class="d-flex align-items-center gap-0 border rounded" style="width:fit-content">
+                      <button class="btn btn-sm btn-light rounded-0 rounded-start px-3"
+                        (click)="decrease(item)"
+                        [disabled]="updatingItemId === item.itemId">
+                        <i class="bi bi-dash"></i>
+                      </button>
+                      <input type="number" class="form-control form-control-sm text-center border-0 p-0"
+                        style="width:48px;appearance:textfield"
+                        [value]="item.quantity"
+                        [disabled]="updatingItemId === item.itemId"
+                        (change)="onQtyInput(item, $any($event.target).value)"
+                        min="0" [max]="item.stockQuantity">
+                      <button class="btn btn-sm btn-light rounded-0 rounded-end px-3"
+                        (click)="increase(item)"
+                        [disabled]="updatingItemId === item.itemId || item.quantity >= item.stockQuantity">
+                        <i class="bi bi-plus"></i>
+                      </button>
+                    </div>
+
+                    <!-- Item subtotal -->
+                    <div class="text-end">
+                      <span class="fw-semibold">{{ item.subtotal | currency }}</span>
+                      @if (updatingItemId === item.itemId) {
+                        <span class="spinner-border spinner-border-sm ms-2 text-muted"></span>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Clear cart -->
+        <div class="card-footer bg-transparent text-end">
+          <button class="btn btn-sm btn-outline-danger" (click)="showClearConfirm = true">
+            <i class="bi bi-trash me-1"></i> Clear Cart
+          </button>
+        </div>
+      </div>
+
+      <a routerLink="/customer/browse" class="text-muted small d-inline-flex align-items-center gap-1 mt-3">
+        <i class="bi bi-arrow-left"></i> Continue Shopping
+      </a>
+    </div>
+
+    <!-- Order summary -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent fw-semibold">Order Summary</div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Items ({{ cart.itemCount }})</span>
+            <span>{{ cart.subtotal | currency }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Shipping</span>
+            <span class="text-success small">Calculated at checkout</span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
+            <span>Subtotal</span>
+            <span class="text-primary">{{ cart.subtotal | currency }}</span>
+          </div>
+
+          <a routerLink="/customer/checkout"
+            class="btn btn-primary w-100 mb-2"
+            [class.disabled]="cart.items.some(i => !i.isInStock)">
+            <i class="bi bi-lock me-1"></i> Proceed to Checkout
+          </a>
+          <a routerLink="/customer/browse" class="btn btn-outline-secondary w-100">
+            Continue Shopping
+          </a>
+
+          @if (cart.items.some(i => !i.isInStock)) {
+            <div class="alert alert-warning small mt-3 mb-0">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              Remove out-of-stock items to proceed.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+  </div>
+}
+
+<!-- Clear cart confirmation -->
+@if (showClearConfirm) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-danger">Clear Cart</h5>
+          <button type="button" class="btn-close" (click)="showClearConfirm = false"></button>
+        </div>
+        <div class="modal-body">Remove all items from your cart?</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="showClearConfirm = false">Cancel</button>
+          <button class="btn btn-danger btn-sm" (click)="clearCart()">Clear All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
