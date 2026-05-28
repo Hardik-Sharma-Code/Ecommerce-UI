@@ -46,6 +46,10 @@ export class ResetPasswordComponent implements OnInit {
 
   submit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (!this.token) {
+      this.toast.error('Invalid or missing reset link. Please request a new password reset.', 'Error');
+      return;
+    }
 
     this.loading = true;
     this.auth.resetPassword({
@@ -62,7 +66,10 @@ export class ResetPasswordComponent implements OnInit {
           this.toast.error(res.message, 'Error');
         }
       },
-      error: () => { this.loading = false; }
+      error: () => {
+        this.loading = false;
+        this.toast.error('Failed to reset password. Please try again.', 'Error');
+      }
     });
   }
 }

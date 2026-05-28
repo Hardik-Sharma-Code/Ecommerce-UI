@@ -41,8 +41,9 @@ export class CustomerOrdersComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.orders = this.getMockOrders();
-        this.total = 3; this.totalPages = 1;
+        this.toast.error('Failed to load orders. Please try again.', 'Error');
+        this.orders = [];
+        this.total = 0; this.totalPages = 1;
       }
     });
   }
@@ -73,7 +74,10 @@ export class CustomerOrdersComponent implements OnInit {
           this.toast.error(res.message, 'Error');
         }
       },
-      error: () => { this.closeCancelModal(); }
+      error: () => {
+        this.closeCancelModal();
+        this.toast.error('Failed to cancel order. Please try again.', 'Error');
+      }
     });
   }
 

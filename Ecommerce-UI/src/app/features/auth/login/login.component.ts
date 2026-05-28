@@ -41,7 +41,10 @@ export class LoginComponent {
           this.toast.error(res.message, 'Login Failed');
         }
       },
-      error: () => { this.loading = false; }
+      error: () => {
+        this.loading = false;
+        this.toast.error('Login failed. Please check your connection and try again.', 'Error');
+      }
     });
   }
 }

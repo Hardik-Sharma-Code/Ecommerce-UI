@@ -59,7 +59,7 @@ export class WishlistService {
       tap(res => {
         if (res.success) {
           this.wishlistState$.next(this.wishlistState$.value.filter(i => i.itemId !== itemId));
-          this.cartService.getCart().subscribe();
+          this.cartService.getCart().subscribe({ error: () => {} });
         }
       })
     );

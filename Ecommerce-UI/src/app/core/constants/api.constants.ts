@@ -2,7 +2,7 @@ export const API_BASE_URL = 'http://localhost:63912/api';
 
 export const API_ENDPOINTS = {
   auth: {
-    login: `${API_BASE_URL}/Auth/login`,
+    login: `${API_BASE_URL}/auth/login`,
     logout: `${API_BASE_URL}/auth/logout`,
     refreshToken: `${API_BASE_URL}/auth/refresh-token`,
     forgotPassword: `${API_BASE_URL}/auth/forgot-password`,

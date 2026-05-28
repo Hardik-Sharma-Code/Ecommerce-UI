@@ -40,7 +40,10 @@ export class OrderDetailComponent implements OnInit {
         this.loading = false;
         this.order = res.success && res.data ? res.data : null;
       },
-      error: () => { this.loading = false; }
+      error: () => {
+        this.loading = false;
+        this.toast.error('Failed to load order details. Please try again.', 'Error');
+      }
     });
   }
 
@@ -75,6 +78,13 @@ export class OrderDetailComponent implements OnInit {
 
   submitRefund(): void {
     if (!this.order || !this.refundModal.reason.trim()) return;
+    if (this.refundModal.amount <= 0 || this.refundModal.amount > this.order.totalAmount) {
+      this.toast.error(
+        `Refund amount must be between 0.01 and ${this.order.totalAmount}.`,
+        'Invalid Amount'
+      );
+      return;
+    }
     this.submittingRefund = true;
     const dto: RequestRefundDto = {
       orderId: this.order.id,
@@ -92,7 +102,10 @@ export class OrderDetailComponent implements OnInit {
           this.toast.error(res.message, 'Error');
         }
       },
-      error: () => { this.submittingRefund = false; }
+      error: () => {
+        this.submittingRefund = false;
+        this.toast.error('Failed to submit refund request. Please try again.', 'Error');
+      }
     });
   }
 
@@ -109,7 +122,10 @@ export class OrderDetailComponent implements OnInit {
           this.toast.error(res.message, 'Error');
         }
       },
-      error: () => { this.closeCancelModal(); }
+      error: () => {
+        this.closeCancelModal();
+        this.toast.error('Failed to cancel order. Please try again.', 'Error');
+      }
     });
   }
 

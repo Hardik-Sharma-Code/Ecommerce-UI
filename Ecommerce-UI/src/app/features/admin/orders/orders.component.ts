@@ -61,8 +61,9 @@ export class AdminOrdersComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.orders = this.getMockOrders();
-        this.total = 4; this.totalPages = 1;
+        this.toast.error('Failed to load orders. Please try again.', 'Error');
+        this.orders = [];
+        this.total = 0; this.totalPages = 1;
       }
     });
   }
@@ -101,7 +102,10 @@ export class AdminOrdersComponent implements OnInit {
           this.toast.error(res.message, 'Error');
         }
       },
-      error: () => { this.closeStatusModal(); }
+      error: () => {
+        this.closeStatusModal();
+        this.toast.error('Failed to update order status. Please try again.', 'Error');
+      }
     });
   }
 
